@@ -2,13 +2,14 @@ import { useEffect, useReducer, useState } from "react";
 import { ListGroup } from "react-bootstrap";
 import CatRow from "@/global/Components/SelectCategory/CatRow";
 import { CatReducer, initialState } from "@/global/Components/SelectCategory/CatReducer";
-import { useGlobalContext } from "@/global/GlobalProvider";
+//import { useGlobalContext } from "@/global/GlobalProvider";
 import { CatActionTypes, type ICatInfo } from "./types";
 import type { ICategoryKey, ICategoryRow } from "@/categories/types";
+import { useCategoryContext } from "@/categories/CategoryProvider";
 
 const CatList = ({ selId, categoryKey, level, setParentId }: ICatInfo) => {
     const [state, dispatch] = useReducer(CatReducer, initialState);
-    const { getSubCats } = useGlobalContext();
+    const { getSubCats } = useCategoryContext();
 
     const { id } = categoryKey ?? { id: null };
     const [catKey] = useState<ICategoryKey | null>(categoryKey)

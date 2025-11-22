@@ -1,7 +1,7 @@
 
 import { type Reducer } from 'react'
 import type { IGlobalState, GlobalActions, IAuthUser, ILocStorage } from "./types";
-import { ROLES, GlobalActionTypes,  } from "./types";
+import { ROLES, GlobalActionTypes, } from "./types";
 
 export const initialAuthUser: IAuthUser = {
     nickName: '',
@@ -11,79 +11,7 @@ export const initialAuthUser: IAuthUser = {
     role: ROLES.VIEWER
 }
 
-// const initGlobalState: IGlobalState = {
-//     dbp: null,
-//     workspace: 'DEMO',
-//     authUser: initialAuthUser,
-//     isAuthenticated: false,
-//     everLoggedIn: true,
-//     canEdit: true,
-//     isOwner: true,
-//     isDarkMode: true,
-//     variant: 'dark',
-//     bg: 'dark',
-//     loading: false,
-//     allCategoryRows: new Map<string, ICategoryRow>(),
-//     categoryRowsLoaded: undefined,
-//     allGroupRows: new Map<string, IGroupRow>(),
-//     groupRowsLoaded: undefined,
-//     nodesReLoaded: false,
-//     lastRouteVisited: '/categories',
-// }
 
-//let globalStateFromLocalStorage: IGlobalStateFromLocalStorage | undefined;
-
-/*
-const hasMissingProps = (): boolean => {
-    let b = false;
-    // const keys = Object.keys(globalStateFromLocalStorage!)
-    // Object.keys(initGlobalState).forEach((prop: string) => {
-    //     if (!keys.includes(prop)) {
-    //         b = true;
-    //         console.log('missing prop:', prop)
-    //     }
-    //     else if (prop === 'authUser') {
-    //         const keys = Object.keys(globalStateFromLocalStorage!.authUser)
-    //         Object.keys(initGlobalState.authUser).forEach((prop: string) => {
-    //             if (!keys.includes(prop)) {
-    //                 b = true;
-    //                 //console.log('missing prop:', prop, ' try with SignOut')
-    //                 alert('missing prop: ' + prop + ' try with SignOut')
-    //             }
-    //         })
-    //     }
-    // })
-    return b;
-} */
-
-/*
-if ('localStorage' in window) {
-    // localStorage.removeItem('GLOBAL_STATE')
-    const s = localStorage.getItem('GLOBAL_STATE');
-    if (s !== null) {
-        globalStateFromLocalStorage = JSON.parse(s);
-        if (hasMissingProps()) {
-            globalStateFromLocalStorage = undefined;
-        }
-        // else {
-        //     const { authUser } = globalStateFromLocalStorage!;
-        //     //authUser.userId = authUser.userId;
-        //     console.log('===>>>globalStateFromLocalStorage', globalStateFromLocalStorage);
-        // }
-    }
-}
-*/
-
-//export const initialGlobalState: IGlobalState = initGlobalState;
-// if (globalStateFromLocalStorage) {
-//     const { everLoggedIn, nickName, isDarkMode, variant, bg, lastRouteVisited } = globalStateFromLocalStorage;
-//     initialGlobalState.everLoggedIn = everLoggedIn;
-//     initialGlobalState.authUser.nickName = nickName;
-//     initialGlobalState.isDarkMode = isDarkMode;
-//     initialGlobalState.variant = variant;
-//     initialGlobalState.bg = bg;
-//     initialGlobalState.lastRouteVisited = lastRouteVisited;
-// }
 
 export const GlobalReducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
     const newState = reducer(state, action);
@@ -196,7 +124,7 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
             };
         }
 
-        case GlobalActionTypes.SET_ALL_GROUP_ROWS: {
+        case GlobalActionTypes.SET_ALL_GROUP_ROWS_GLOBAL: {
             const { allGroupRows } = action.payload;
             return {
                 ...state,

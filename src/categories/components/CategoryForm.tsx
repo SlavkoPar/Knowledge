@@ -11,7 +11,7 @@ import { useCategoryContext, useCategoryDispatch } from "@/categories/CategoryPr
 import QuestionList from "@/categories/components/questions/QuestionList";
 import VariationList from "@/categories/VariationList";
 import { Select } from "@/common/components/Select";
-import { kindOptions } from "@/common/kindOptions ";
+import { kindOptions } from "@/common/Options";
 import { useDebounce } from "@uidotdev/usehooks";
 
 const CategoryForm = ({ formMode, category, submitForm, children }: ICategoryFormProps) => {

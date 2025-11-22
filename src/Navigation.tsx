@@ -111,7 +111,7 @@ export function Navigation(/*props: INavigation*/) {
                 </NavLink>
               }
 
-              {isAuthenticated &&
+              {/* {isAuthenticated &&
                 // <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link"
                 <NavLink to={`/ChatBotPage/0/${encodeURIComponent('daljinski')}/xyz`} className="nav-link"
                   onClick={() => {
@@ -120,7 +120,7 @@ export function Navigation(/*props: INavigation*/) {
                   }>
                   <FontAwesomeIcon icon={faSurprise} color='lightblue' />{' '}ChatBot
                 </NavLink>
-              }
+              } */}
 
 
               {!isAuthenticated &&

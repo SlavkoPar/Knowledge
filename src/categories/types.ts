@@ -592,6 +592,7 @@ export interface ICategoriesContext {
 	//////////////
 	// questions
 	loadCategoryQuestions: (catParams: ILoadCategoryQuestions) => void;  //(parentInfo: IParentInfo) => void,
+	getSubCats: (categoryId: string | null) => Promise<any>;
 	addQuestion: (categoryKey: ICategoryKey, isExpanded: boolean) => Promise<any>;
 	cancelAddQuestion: () => Promise<any>;
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;

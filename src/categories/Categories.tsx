@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
@@ -18,13 +18,19 @@ import EditQuestion from "@/categories/components/questions/EditQuestion";
 import { initialQuestion } from "@/categories/CategoryReducer";
 import ModalAddQuestion from './ModalAddQuestion';
 import AddCategory from './components/AddCategory';
-import { AutoSuggestQuestions } from './AutoSuggestQuestions';
+//import { AutoSuggestQuestions } from './AutoSuggestQuestions';
 import AddQuestion from './components/questions/AddQuestion';
 
 interface IProps {
     categoryId_questionId?: string;
     fromChatBotDlg?: string;
 }
+
+
+const AutoSuggestQuestions = lazy(() =>
+    // named export
+    import("@/categories/AutoSuggestQuestions").then((module) => ({ default: module.AutoSuggestQuestions }))
+);
 
 const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     const { state, expandNodesUpToTheTree, loadTopRows, addSubCategory } = useCategoryContext();
@@ -41,7 +47,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         loadingQuestions, loadingQuestion
     } = state;
 
-    const { searchQuestions } = useGlobalContext();
+    const { searchQuestions, setLastRouteVisited } = useGlobalContext();
     const { isDarkMode } = useGlobalState();
 
     const [modalShow, setModalShow] = useState(false);
@@ -109,9 +115,9 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         })()
     }, [keyExpanded, nodeOpening, nodeOpened, expandNodesUpToTheTree, categoryId_questionId, categoryId_questionId_done, topRows, fromChatBotDlg])
 
-    // useEffect(() => {
-    //     setLastRouteVisited(`/categories`);
-    // }, [setLastRouteVisited])
+    useEffect(() => {
+        setLastRouteVisited(`/categories`);
+    }, [setLastRouteVisited])
 
     if (categoryId_questionId !== 'add_question') {
         if (/*keyExpanded ||*/ (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done)) {
@@ -139,12 +145,14 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                     <Col>
                         <div className="d-flex justify-content-start align-items-center">
                             <div className="w-75 my-1 questions">
-                                <AutoSuggestQuestions
-                                    tekst={tekst}
-                                    onSelectQuestion={onSelectQuestion}
-                                    allCategoryRows={allCategoryRows}
-                                    searchQuestions={searchQuestions}
-                                />
+                                <Suspense fallback={<div>Loading...</div>}>
+                                    <AutoSuggestQuestions
+                                        tekst={tekst}
+                                        onSelectQuestion={onSelectQuestion}
+                                        allCategoryRows={allCategoryRows}
+                                        searchQuestions={searchQuestions}
+                                    />
+                                </Suspense>
                             </div>
                         </div>
                     </Col>

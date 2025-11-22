@@ -7,7 +7,6 @@ import { useGlobalDispatch, useGlobalState } from '@/global/GlobalProvider'
 import './App.css';
 import './AutoSuggest.css';
 
-//import Categories from "@/categories/Categories"
 
 // Dynamic imports
 const Categories = lazy(() =>
@@ -15,22 +14,22 @@ const Categories = lazy(() =>
   import("@/categories/Categories").then((module) => ({ default: module.default }))
 );
 
-// const ChatBotPage = lazy(() =>
-//   // named export
-//   import("./ChatBotPage").then((module) => ({ default: module.default }))
-// );
+const Groups = lazy(() =>
+  // named export
+  import("@/groups/Groups").then((module) => ({ default: module.default }))
+);
 
+const ChatBotDlg = lazy(() =>
+  // named export
+  import("./ChatBotDlg").then((module) => ({ default: module.default }))
+);
 
-//import Groups from "groups/Groups"
 import About from './About';
 import Health from './Health';
-import SupportPage from './SupportPage';
-import ChatBotPage from './ChatBotPage';
 import { GlobalActionTypes, type IUser } from '@/global/types';
 import { type AccountInfo } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
 import AboutShort from './AboutShort';
-import ChatBotDlg from './ChatBotDlg';
 
 function App() {
 
@@ -104,10 +103,14 @@ function App() {
     })()
   }, [isAuthenticated, nickName, everLoggedIn, locationPathname, navigate, location.search])
 
-  useEffect(() => {
-    console.log('----------->>>>>>>>>> App lastRouteVisited', lastRouteVisited);
-    navigate(lastRouteVisited);
-  }, [lastRouteVisited, navigate])
+
+  // useEffect(() => {
+  //   console.log('----------->>>>>>>>>> App lastRouteVisited', lastRouteVisited);
+  if (locationPathname === '/knowledge') {
+    if (locationPathname !== lastRouteVisited)
+      navigate(lastRouteVisited);
+  }
+  //}, [lastRouteVisited, navigate])
 
   if (!isAuthenticated) // || !categoryRowsLoaded) // || !groupRowsLoaded)
     return <div>App loading</div>
@@ -125,18 +128,18 @@ function App() {
           <div className="wrapper">
             <Suspense fallback={<div>Loading...</div>}>
               <Routes>
-                <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <AboutShort /> : <Categories />} />
-                <Route path="/knowledge" element={(!isAuthenticated && !everLoggedIn) ? <AboutShort /> : <Categories />} />
+                <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <AboutShort /> : <Groups />} />
+                <Route path="/knowledge" element={(!isAuthenticated && !everLoggedIn) ? <AboutShort /> : <Groups />} />
                 {/* <Route path="" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} /> */}
                 {/* <Route path="/register/:returnUrl" element={<RegisterForm />} />
               <Route path="/sign-in" element={<LoginForm initialValues={formInitialValues} invitationId='' />} /> */}
-                <Route path="/supporter/:source/:tekst" element={<SupportPage />} />
-                <Route path="/supporter/:source/:tekst/:email" element={<SupportPage />} />
-                <Route path="/ChatBotPage/:source/:tekst/:email" element={<ChatBotPage />} />
+                {/* <Route path="/supporter/:source/:tekst" element={<SupportPage />} />
+                <Route path="/supporter/:source/:tekst/:email" element={<SupportPage />} /> */}
+                {/* <Route path="/ChatBotPage/:source/:tekst/:email" element={<ChatBotPage />} /> */}
                 <Route path="/categories/:categoryId_questionId/:fromChatBotDlg" element={<Categories />} />
                 <Route path="/categories" element={<Categories />} />
-                {/* <Route path="/groups/:groupId_AnswerId" element={<Groups />} />
-              <Route path="/groups" element={<Groups />} /> */}
+                <Route path="/groups/:groupId_AnswerId" element={<Groups />} />
+                <Route path="/groups" element={<Groups />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/about-short" element={<AboutShort />} />
                 <Route path="/health" element={<Health />} />
@@ -149,7 +152,9 @@ function App() {
       {allCategoryRowsLoaded && //nodesReLoaded &&
         <>
           {modalChatBotShow &&
-            <ChatBotDlg show={modalChatBotShow} onHide={() => { setModalChatBotShow(false) }} />
+            <Suspense fallback={<div>Loading...</div>}>
+              <ChatBotDlg show={modalChatBotShow} onHide={() => { setModalChatBotShow(false) }} />
+            </Suspense>
           }
           <Button onClick={(e) => {
             setModalChatBotShow(!modalChatBotShow);

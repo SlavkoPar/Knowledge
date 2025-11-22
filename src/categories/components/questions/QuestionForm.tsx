@@ -10,8 +10,7 @@ import  { ActionTypes } from "@/categories/types";
 import { FormMode, QuestionKey } from "@/categories/types";
 
 import { Select } from '@/common/components/Select';
-import { sourceOptions } from '@/common/sourceOptions'
-import { statusOptions } from '@/common/statusOptions'
+import { sourceOptions, statusOptions } from '@/common/Options'
 import CatList from '@/global/Components/SelectCategory/CatList'
 
 import { useCategoryContext, useCategoryDispatch } from "@/categories/CategoryProvider";

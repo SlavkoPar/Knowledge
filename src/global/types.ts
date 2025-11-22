@@ -154,7 +154,7 @@ export interface IGlobalState {
 		endpointAnswer: string;
 		endpointHistory: string;
 		endpointHistoryFilter: string;
-	};
+	},
 	isAuthenticated: boolean | null;
 	workspace: string;
 	everLoggedIn: boolean;
@@ -224,7 +224,7 @@ export enum GlobalActionTypes {
 	DARK_MODE = "DARK_MODE",
 	LIGHT_MODE = "LIGHT_MODE",
 	SET_ALL_CATEGORY_ROWS_GLOBAL = 'SET_ALL_CATEGORY_ROWS_GLOBAL',
-	SET_ALL_GROUP_ROWS = 'SET_ALL_GROUP_ROWS',
+	SET_ALL_GROUP_ROWS_GLOBAL = 'SET_ALL_GROUP_ROWS_GLOBAL',
 	SET_NODES_RELOADED = 'SET_NODES_RELOADED',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
 	SET_LAST_ROUTE_VISITED = 'SET_LAST_ROUTE_VISITED'
@@ -293,7 +293,7 @@ export type GlobalPayload = {
 		allCategoryRows: Map<string, ICategoryRow>
 	};
 
-	[GlobalActionTypes.SET_ALL_GROUP_ROWS]: {
+	[GlobalActionTypes.SET_ALL_GROUP_ROWS_GLOBAL]: {
 		allGroupRows: Map<string, IGroupRow>
 	};
 

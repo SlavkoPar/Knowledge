@@ -90,7 +90,6 @@ export const CategoryProvider: React.FC<IProps> = ({ children }) => {
       ? { topId: "QUESTIONS", categoryId: "QUESTIONS", questionId: "qqqqqq111" }
       : { topId: "MTS", categoryId: "REMOTECTRLS", questionId: "qqqqqq111" }
 
-    /* DOK TESTIRAM QUESTIONS*/
     if ('localStorage' in window) {
       let s = localStorage.getItem('CATEGORIES_STATE');
       console.log('CATEGORIES_STATE loaded before signIn', s)
@@ -104,41 +103,7 @@ export const CategoryProvider: React.FC<IProps> = ({ children }) => {
     dispatch({ type: ActionTypes.SET_FROM_LOCAL_STORAGE, payload: { keyExpanded } });
   }, [workspace]);
 
-  //const _question: IQuestion | null = null;
-
-  /*
-  class QQuestion {
-    // constructor(dto: IQuestionDto) { //, parentId: string) {
-    //   // TODO possible to call base class construtor
-    //   // this.question = { ...initialQuestion }
-    // }
-    static getQuestion(dto: IQuestionDto) {
-      //this.question = { ...initialQuestion }
-      QQuestion.question = new Question(dto).question
-      
-      this.question.topId = dto.TopId//'aha // TODO will be set later
-      this.question.parentId = dto.ParentId ?? ''
-      this.question.id = dto.Id
-      this.question.title = dto.Title
-      this.question.categoryTitle = dto.CategoryTitle
-      this.question.assignedAnswers = []
-      this.question.numOfAssignedAnswers = dto.NumOfAssignedAnswers ?? 0
-      this.question.relatedFilters = []
-      this.question.numOfRelatedFilters = dto.NumOfRelatedFilters ?? 0
-      this.question.source = dto.Source ?? 0
-      this.question.status = dto.Status ?? 0
-      this.question.included = dto.Included !== undefined
-      this.question.created = new Dto2WhoWhen(dto.Created!).whoWhen
-      this.question.modified = dto.Modified
-        ? new Dto2WhoWhen(dto.Modified).whoWhen
-        : undefined
-        
-      return QQuestion.question
-    }
-    static question: IQuestion
-  }
-  */
-
+  
   const Execute = useCallback(
     async (
       method: string,
@@ -227,7 +192,7 @@ export const CategoryProvider: React.FC<IProps> = ({ children }) => {
               allCategoryRows.set(id, cat);
             })
             dispatch({ type: ActionTypes.SET_ALL_CATEGORY_ROWS, payload: { allCategoryRows } });
-            resolve(true)
+            //resolve(true)
           });
       }
       catch (error: any) {
@@ -251,10 +216,33 @@ export const CategoryProvider: React.FC<IProps> = ({ children }) => {
   }, [allCategoryRows]);
 
   useEffect(() => {
-    if (allCategoryRowsLoaded === undefined) /// isAuthenticated && 
-      loadAllCategoryRows();
-  }, [allCategoryRowsLoaded, loadAllCategoryRows]);
+      (async () => {
+        if (allCategoryRowsLoaded === undefined) {
+          await loadAllCategoryRows();
+        }
+      })()
+    }, [allCategoryRowsLoaded, loadAllCategoryRows]);
 
+  const getSubCats = useCallback(async (categoryId: string | null) => {
+      try {
+        let parentHeader = "";
+        const subCats: ICategoryRow[] = [];
+        allCategoryRows.forEach((cat, id) => {  // globalState.cats is Map<string, ICat>
+          if (id === categoryId) {
+            parentHeader = ""; //cat.header!;
+          }
+          else if (cat.parentId === categoryId) {
+            subCats.push(cat);
+          }
+        })
+        return { subCats, parentHeader };
+      }
+      catch (error: any) {
+        console.log(error)
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+        return { subCats: [], parentHeader: 'Kiks subCats' }
+      }
+    }, [allCategoryRows]);
 
   const loadTopRows = useCallback(async () => {
     return new Promise(async (resolve) => {
@@ -1357,7 +1345,7 @@ export const CategoryProvider: React.FC<IProps> = ({ children }) => {
   //   }, [findCategoryRow])
 
   const contextValue: ICategoriesContext = {
-    state, loadAllCategoryRows, getCat,
+    state, loadAllCategoryRows, getSubCats, getCat,
     expandNodesUpToTheTree,
     loadTopRows,
     addSubCategory: addCategory, cancelAddCategory, createCategory,

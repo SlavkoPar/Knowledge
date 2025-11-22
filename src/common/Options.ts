@@ -1,0 +1,31 @@
+export const kindOptions = [
+    { label: "Unknown", value: 0 },
+    { label: "Podrška", value: 1 },
+    { label: "Opcija", value: 2 },
+    { label: "Usluga", value: 3 },
+    { label: "Tema", value: 4 }
+]
+
+export const roleOptions = [
+    { label: "Unknown", value: '' },
+    { label: "OWNER", value: 'OWNER' },
+    { label: "ADMIN", value: 'ADMIN' },
+    { label: "EDITOR", value: 'EDITOR' },
+    { label: "VIEWER", value: 'VIEWER' }
+]
+
+export const sourceOptions = [
+    { label: "Unknown", value: '' },
+    { label: "OWNER", value: 'OWNER' },
+    { label: "ADMIN", value: 'ADMIN' },
+    { label: "EDITOR", value: 'EDITOR' },
+    { label: "VIEWER", value: 'VIEWER' }
+]
+
+export const statusOptions = [
+    { label: "Unknown", value: 0 },
+    { label: "In progress", value: 1 },
+    { label: "Can't reproduce", value: 2 },
+    { label: "Blocked", value: 3 },
+    { label: "Complete", value: 4 }
+]

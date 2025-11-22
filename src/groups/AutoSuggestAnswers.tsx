@@ -1,17 +1,16 @@
 import React, { type JSX } from 'react';
-
 import Autosuggest from 'react-autosuggest';
 import AutosuggestHighlightMatch from "autosuggest-highlight/match";
 import AutosuggestHighlightParse from "autosuggest-highlight/parse";
+
 import { isMobile } from 'react-device-detect'
 
 import { debounce, escapeRegexCharacters } from '@/common/utilities'
 import './AutoSuggestAnswers.css'
-import { AnswerKey, type IAnswerKey, type IAnswerRow, type IGroupRow } from '@/groups/types';
-import type { IAssignedAnswerKey, IQuestionKey } from '@/categories/types';
+import { type IGroupRow, type IAnswerKey, type IAnswerRow, AnswerKey } from '@/groups/types';
 
 
-interface IGroupMy {
+interface IGrpMy {
 	id: string,
 	parentGroupUp: string,
 	groupParentTitle: string,
@@ -19,7 +18,7 @@ interface IGroupMy {
 	answerRows: IAnswerRow[]
 }
 
-interface IGroupSection {
+interface IGrpSection {
 	id: string | null,
 	groupTitle: string,
 	parentGroupUp: string,
@@ -35,26 +34,24 @@ interface IGroupSection {
 
 // autoFocus does the job
 //let inputAutosuggest = createRef<HTMLInputElement>();
-// interface IGroupIdTitle {
+// interface IGrpIdTitle {
 // 	id: string;
 // 	title: string;
 // }
 
-const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAnswerRow, IGroupMy> };
+const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAnswerRow, IGrpMy> };
 
 export class AutoSuggestAnswers extends React.Component<{
-	questionKey: IQuestionKey,
 	tekst: string | undefined,
-	onSelectAnswer: (assignedAnswerKey: IAssignedAnswerKey, underFilter: string) => void,
+	onSelectAnswer: (answerKey: IAnswerKey, underFilter: string) => void,
 	allGroupRows: Map<string, IGroupRow>,
-	searchAnswers: (filter: string, count: number, questionKey: IQuestionKey) => Promise<IAnswerRow[]>
+	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>
 }, any> {
 	// region Fields
-	questionKey: IQuestionKey;
 	state: any;
 	isMob: boolean;
 	allGroupRows: Map<string, IGroupRow>;
-	searchAnswers: (filter: string, count: number, questionKey: IQuestionKey) => Promise<IAnswerRow[]>;
+	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
 	// endregion region Constructor
@@ -68,13 +65,13 @@ export class AutoSuggestAnswers extends React.Component<{
 			highlighted: ''
 		};
 		//this.inputAutosuggest = createRef<HTMLInputElement>();
-		this.questionKey = props.questionKey;
 		this.allGroupRows = props.allGroupRows;
 		this.searchAnswers = props.searchAnswers;
 		this.isMob = isMobile;
 		this.loadSuggestions = this.loadSuggestions.bind(this);
 		this.debouncedLoadSuggestions = debounce(this.loadSuggestions, 300);
 	}
+
 
 	async loadSuggestions(value: string) {
 		this.setState({
@@ -143,15 +140,16 @@ export class AutoSuggestAnswers extends React.Component<{
 	}
 
 
-	// private satisfyingGroups = (searchWords: string[]): IGroupIdTitle[] => {
-	// 	const arr: IGroupIdTitle[] = [];
+	// private satisfyingGroups = (searchWords: string[]): IGrpIdTitle[] => {
+	// 	const arr: IGrpIdTitle[] = [];
 	// 	searchWords.filter(w => w.length >= 3).forEach(w => {
-	// 		this.allGroupRows.forEach(async group => {
-	// 			//const parentId = group.id;
-	// 			// cat.words.forEach(catw => {
-	// 			// 	if (catw.includes(w)) {
+	// 		this.allGroupRows.forEach(async Grp => {
+	// 			//const parentId = Grp.id;
+	// 			//let j = 0;
+	// 			// Grp.words.forEach(Grpw => {
+	// 			// 	if (Grpw.includes(w)) {
 	// 			// 		console.log("Add all answers of group")
-	// 			// 		arr.push({ id: cat.id, title: cat.title })
+	// 			// 		arr.push({ id: Grp.id, title: Grp.title })
 	// 			// 	}
 	// 			// })
 	// 		})
@@ -159,39 +157,38 @@ export class AutoSuggestAnswers extends React.Component<{
 	// 	return arr;
 	// }
 
-	protected async getSuggestions(search: string): Promise<IGroupSection[]> {
+	protected async getSuggestions(search: string): Promise<IGrpSection[]> {
 		const escapedValue = escapeRegexCharacters(search.trim());
 		if (escapedValue === '') {
 			return [];
 		}
 		if (search.length < 3)
 			return [];
-		const groupAnswers = new Map<string | null, IAnswerRow[]>();
+		const GrpSection = new Map<string | null, IAnswerRow[]>();
 		const answerKeys: IAnswerKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
-			var answerRows: IAnswerRow[] = await this.searchAnswers(escapedValue, 20, this.questionKey);
-			answerRows.forEach((row: IAnswerRow) => {
-				const { id, topId, parentId, title, isSelected } = row;
-				const answerKey = new AnswerKey(row).answerKey!;
-
+			var answerRows: IAnswerRow[] = await this.searchAnswers(escapedValue, 10);
+			answerRows.forEach((answerRow: IAnswerRow) => {
+				const { topId, parentId, id, title, included } = answerRow;
+				const answerKey = new AnswerKey(answerRow).answerKey!;
 				if (!answerKeys.includes(answerKey)) {
 					answerKeys.push(answerKey);
 
 					// 2) Group answers by parentId
-					const answ: IAnswerRow = {
+					const row: IAnswerRow = {
 						topId,
-						id,
 						parentId,
+						id,
 						title,
 						groupTitle: '',
-						isSelected
+						included
 					}
-					if (!groupAnswers.has(parentId)) {
-						groupAnswers.set(parentId, [answ]);
+					if (!GrpSection.has(parentId)) {
+						GrpSection.set(parentId, [row]);
 					}
 					else {
-						groupAnswers.get(parentId)!.push(answ);
+						GrpSection.get(parentId)!.push(row);
 					}
 				}
 			})
@@ -207,11 +204,11 @@ export class AutoSuggestAnswers extends React.Component<{
 			try {
 				const tx = this.dbp!.transaction('Answers')
 				const index = tx.store.index('parentGroup_idx');
-				const catIdTitles = this.satisfyingGroups(searchWords)
+				const GrpIdTitles = this.satisfyingGroups(searchWords)
 				let i = 0;
-				while (i < catIdTitles.length) {
-					const catIdTitle = catIdTitles[i];
-					const parentId = catIdTitle.id;
+				while (i < GrpIdTitles.length) {
+					const GrpIdTitle = GrpIdTitles[i];
+					const parentId = GrpIdTitle.id;
 					for await (const cursor of index.iterate(parentId)) {
 						const q: IAnswer = cursor.value;
 						const { id, title } = q;
@@ -228,13 +225,13 @@ export class AutoSuggestAnswers extends React.Component<{
 								id,
 								parentId,
 								title,
-								groupTitle: catIdTitle.title
+								groupTitle: GrpIdTitle.title
 							}
-							if (!catQuests.has(parentId)) {
-								catQuests.set(parentId, [quest]);
+							if (!GrpQuests.has(parentId)) {
+								GrpQuests.set(parentId, [quest]);
 							}
 							else {
-								catQuests.get(parentId)!.push(quest);
+								GrpQuests.get(parentId)!.push(quest);
 							}
 						}
 					}
@@ -260,11 +257,10 @@ export class AutoSuggestAnswers extends React.Component<{
 
 			////////////////////////////////////////////////////////////
 			// 
-			let groupSections: IGroupSection[] = [];
-			groupAnswers.forEach((quests, id) => {
-
+			let GrpSections: IGrpSection[] = [];
+			GrpSection.forEach((quests, id) => {
 				//let variationsss: string[] = [];
-				const groupSection: IGroupSection = {
+				const GrpSection: IGrpSection = {
 					id,
 					groupTitle: '',
 					groupParentTitle: 'kuro',
@@ -272,20 +268,20 @@ export class AutoSuggestAnswers extends React.Component<{
 					answerRows: []
 				};
 				if (id !== null) {
-					const group = this.allGroupRows.get(id);
-					if (group) {
-						const { title, titlesUpTheTree } = group!;
-						groupSection.groupTitle = title;
-						groupSection.parentGroupUp = titlesUpTheTree!;
+					const Grp = this.allGroupRows.get(id);
+					if (Grp) {
+						const { title, titlesUpTheTree/*, variations*/ } = Grp!;
+						GrpSection.groupTitle = title;
+						GrpSection.parentGroupUp = titlesUpTheTree!;
 						//variationsss = variations;
 					}
 					else {
-						alert(`${id} Not found in allGroups`)
+						alert(`${id} Not found in allGrps`)
 					}
 				}
 				else {
 				}
-				// const catSection: ICatSection = {
+				// const GrpSection: IGrpSection = {
 				// 	id: id,
 				// 	groupTitle: title,
 				// 	groupParentTitle: 'kuro',
@@ -301,26 +297,26 @@ export class AutoSuggestAnswers extends React.Component<{
 						// 	variationsss.forEach(variation => {
 						// 		if (variation === w.toUpperCase()) {
 						// 			wordsIncludesTag = true;
-						// 			catSection.quests.push({ ...quest, title: quest.title + ' ' + variation });
+						// 			GrpSection.quests.push({ ...quest, title: quest.title + ' ' + variation });
 						// 		}
 						// 	})
 						// })
 						if (!wordsIncludesTag) {
 							// variationsss.forEach(variation => {
 							// 	// console.log(quest);
-							// 	catSection.answerRows.push({ ...quest, title: quest.title + ' ' + variation });
+							// 	GrpSection.answerRows.push({ ...quest, title: quest.title + ' ' + variation });
 							// });
 						}
 					}
 					else {
 					*/
-					groupSection.answerRows.push(quest);
+					GrpSection.answerRows.push(quest);
 					/*}*/
 				});
-				groupSections.push(groupSection);
-				//console.log(catSections)
+				GrpSections.push(GrpSection);
+				//console.log(GrpSections)
 			});
-			return groupSections;
+			return GrpSections;
 		}
 		catch (error: any) {
 			console.log(error)
@@ -337,12 +333,11 @@ export class AutoSuggestAnswers extends React.Component<{
 	};
 
 	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IAnswerRow>): void {
-		event.preventDefault();
+		event.preventDefault(); // ?
 		const answer: IAnswerRow = data.suggestion;
-		const { topId, id } = answer;
-
+		const { topId, parentId, id } = answer;
 		// alert(`Selected answer is ${answer.answerId} (${answer.text}).`);
-		this.props.onSelectAnswer({ topId, id }, this.state.value);
+		this.props.onSelectAnswer({ topId, parentId, id }, this.state.value);
 	}
 
 	/*
@@ -359,11 +354,11 @@ export class AutoSuggestAnswers extends React.Component<{
 		const matches = AutosuggestHighlightMatch(suggestion.title, params.query);
 		const parts = AutosuggestHighlightParse(suggestion.title, matches);
 		return (
-			<span style={{ textAlign: 'left' }}>
+			<span className="d-inline-block text-trunGrpe" style={{ textAlign: 'left' }}>
 				{parts.map((part, index) => {
-					const className = part.highlight ? 'react-autosuggest__suggestion-match' : undefined;
+					const cls = part.highlight ? 'react-autosuggest__suggestion-match' : undefined;
 					return (
-						<span className={className} key={index}>
+						<span key={index} className={`${cls ?? ''}`}>
 							{part.text}
 						</span>
 					);
@@ -372,14 +367,15 @@ export class AutoSuggestAnswers extends React.Component<{
 		);
 	}
 
-	protected renderSectionTitle(section: IGroupMy): JSX.Element {
+	protected renderSectionTitle(section: IGrpMy): JSX.Element {
 		const { parentGroupUp } = section; // , groupParentTitle, groupTitle
 		// let str = (groupParentTitle ? (groupParentTitle + " / ") : "") + groupTitle;
 		// if (parentGroupUp)
 		// 	str = " ... / " + str;
-		return <strong>
-			{parentGroupUp}
-		</strong>;
+		return <span>{parentGroupUp}</span>
+		// <strong>
+		//{parentGroupUp}
+		// </strong>;
 	}
 
 	// protected renderInputComponent(inputProps: Autosuggest.InputProps<IAnswerShort>): JSX.Element {
@@ -420,11 +416,17 @@ export class AutoSuggestAnswers extends React.Component<{
 	// }
 	// endregion region Event handlers
 
+
+
 	protected onChange(event: /*React.ChangeEvent<HTMLInputElement>*/ React.FormEvent<any>, { newValue }: Autosuggest.ChangeEvent): void {
-		event.preventDefault();
+		event.preventDefault(); // ?
 		this.setState({ value: newValue });
 	}
 
+	// getParentTitle = async (id: string): Promise<any> => {
+	// 	let group = await this.dbp.get('Groups', id);
+	// 	return { parentGroupTitle: group.title, parentGroupUp: '' };
+	// }
 
 	protected async onSuggestionsFetchRequested({ value }: any): Promise<void> {
 		return /*await*/ this.debouncedLoadSuggestions(value);
@@ -445,7 +447,7 @@ export class AutoSuggestAnswers extends React.Component<{
 		return suggestion.title;
 	}
 
-	protected getSectionSuggestions(section: IGroupMy) {
+	protected getSectionSuggestions(section: IGrpMy) {
 		return section.answerRows;
 	}
 

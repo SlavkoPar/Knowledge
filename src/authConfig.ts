@@ -4,6 +4,7 @@
  */
 
 import { LogLevel } from "@azure/msal-browser";
+//import { end } from "@popperjs/core";
 
 /**
  * Configuration object to be passed to MSAL instance on creation.
@@ -58,26 +59,36 @@ export const msalConfig = {
  */
 
 export const protectedResources = (() => {
-    const VITE_KNOWLEDGE_API_URL = (import.meta.env.VITE_KNOWLEDGE_API_URL ?? '') as string;
+    const URL = (import.meta.env.VITE_KNOWLEDGE_API_URL ?? 'UNK') as string;
 
     return {
         KnowledgeAPI: {
-            endpointCategoryRow: `${VITE_KNOWLEDGE_API_URL}/CategoryRow`,
-            endpointCategory: `${VITE_KNOWLEDGE_API_URL}/Category`,
-            endpointQuestion: `${VITE_KNOWLEDGE_API_URL}/Question`,
-            endpointQuestionAnswer: `${VITE_KNOWLEDGE_API_URL}/QuestionAnswer`,
-            //endpointShortGroup: `${VITE_KNOWLEDGE_LIB_API_URL}/ShortGroup`,
-            endpointGroupRow: `${VITE_KNOWLEDGE_API_URL}/GroupRow`,
-            endpointGroup: `${VITE_KNOWLEDGE_API_URL}/Group`,
-            endpointAnswer: `${VITE_KNOWLEDGE_API_URL}/Answer`,
-            endpointHistory: `${VITE_KNOWLEDGE_API_URL}/History`,
-            endpointHistoryFilter: `${VITE_KNOWLEDGE_API_URL}/HistoryFilter`
+            endPoints: {
+                Category: {
+                    Row: `${URL}/CategoryRow`,
+                    Category: `${URL}/Category`,
+                    Question: `${URL}/Question`,
+                    QuestionAnswer: `${URL}/QuestionAnswer`,
+                    //endpointShortGroup: `${VITE_KNOWLEDGE_LIB_API_URL}/ShortGroup`,
+                },
+                Group: {
+                    Row: `${URL}/GroupRow`,
+                    Group: `${URL}/Group`,
+                    Answer: `${URL}/Answer`
+                    //endpointShortGroup: `${VITE_KNOWLEDGE_LIB_API_URL}/ShortGroup`,
+                },
+                History: {
+                    endpointHistory: `${URL}/History`,
+                    endpointHistoryFilter: `${URL}/HistoryFilter`
+                }
+            }
         },
         scopes: {
             read: ['api://91385bcd-f531-4b1c-8b3d-2105439f0a8a/ToDoList.Read'],
             write: ['api://91385bcd-f531-4b1c-8b3d-2105439f0a8a/ToDoList.ReadWrite']
         }
     };
+
 })();
 
 /**

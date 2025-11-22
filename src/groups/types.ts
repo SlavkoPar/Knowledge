@@ -1,4 +1,4 @@
-import { type ActionMap, type IRecord, type IDtoKey, Dto2WhoWhen, WhoWhen2Dto } from '@/global/types';
+import { type ActionMap, type IRecord, Dto2WhoWhen, WhoWhen2Dto, type IDtoKey } from '@/global/types';
 
 export enum FormMode {
 	None = 'None',
@@ -22,12 +22,12 @@ export enum FormMode {
 export interface IGroupRowDto extends IDtoKey {
 	Kind: number;
 	Title: string;
-	Link?: string;
+	Link: string | null;
 	Header: string;
-	Variations?: string[];
+	Variations: string[];
 	Level: number;
 	HasSubGroups: boolean;
-	GroupRowDtos?: IGroupRowDto[];
+	SubGroupRowDtos: IGroupRowDto[];
 	NumOfAnswers: number;
 	AnswerRowDtos?: IAnswerRowDto[];
 	HasMoreAnswers?: boolean;
@@ -38,12 +38,18 @@ export interface IGroupDto extends IGroupRowDto {
 	Doc1: string;
 }
 
-export interface IGroupKey { //extends IRecord {
+
+export interface IGroupKey {
 	topId: string,
 	id: string;
-	parentId: string;
+	parentId: string | null;
 }
 
+export interface IKeyExpanded {
+	topId: string,
+	groupId: string;
+	answerId: string | null;
+}
 
 export interface IGroupRow extends IGroupKey, IRecord {
 	kind: number;
@@ -64,24 +70,21 @@ export interface IGroup extends IGroupRow {
 	doc1: string, // some document optionally, used in Group, but not not in GroupRow
 }
 
-// IGroup rather than IGroupRow
-export const IsGroup = (obj: any): boolean => typeof obj === 'object' && obj !== null &&
-	obj.hasOwnProperty('doc1') && typeof obj.doc1 === 'string';
-
 export class GroupRowDto {
-	constructor(groupRow: IGroupRow) {
+	constructor(groupRow: IGroupRow, Workspace: string) {
 		const { topId, id, parentId, modified } = groupRow;
 		this.groupRowDto = {
-			TopId: topId!,
+			Workspace,
+			TopId: topId,
 			Id: id,
-			ParentId: parentId ?? '',
+			ParentId: parentId,
 			Title: '',
 			Link: '',
 			Header: '',
 			Variations: [],
 			// TODO proveri []
 			HasSubGroups: false,
-			GroupRowDtos: [],
+			SubGroupRowDtos: [],
 			NumOfAnswers: 0,
 			AnswerRowDtos: [],
 			Level: 0,
@@ -93,25 +96,28 @@ export class GroupRowDto {
 }
 
 export class GroupRow {
+
 	constructor(groupRowDto: IGroupRowDto) {
-		const { Id, TopId, ParentId, Kind, Title, Link, Header, Variations, Level,
-			HasSubGroups, GroupRowDtos,
+		const { TopId, Id, ParentId, Kind, Title, Link, Header, Variations, Level,
+			HasSubGroups, SubGroupRowDtos,
 			NumOfAnswers, AnswerRowDtos,
 			IsExpanded } = groupRowDto;
 		this.groupRow = {
-			topId: TopId!,
+			topId: TopId,
 			id: Id,
-			parentId: ParentId ?? '',
+			parentId: ParentId ?? null,
 			title: Title,
-			link: Link ?? '',
+			link: Link,
 			header: Header,
 			titlesUpTheTree: '', // traverse up the tree, until root
-			variations: Variations ?? [],
-			hasSubGroups: HasSubGroups!,
-			groupRows: GroupRowDtos ? GroupRowDtos.map(dto => new GroupRow({ ...dto, TopId }).groupRow) : [],
+			variations: Variations,
+			hasSubGroups: HasSubGroups, //!, Odakle ovo
+			groupRows: SubGroupRowDtos
+				? SubGroupRowDtos.map(dto => new GroupRow({ ...dto, TopId }).groupRow)
+				: [],
 			numOfAnswers: NumOfAnswers,
 			answerRows: AnswerRowDtos
-				? AnswerRowDtos.map(dto => new AnswerRow({ ...dto }).answerRow) //, TopId! }).answerRow)
+				? AnswerRowDtos.map(dto => new AnswerRow({ ...dto, TopId: TopId ?? undefined }).answerRow)
 				: [],
 			level: Level,
 			kind: Kind,
@@ -121,12 +127,28 @@ export class GroupRow {
 	groupRow: IGroupRow;
 }
 
+
+/////////////////////////////////////
+// Answer
+export interface IAnswerDtoKey {
+	Workspace?: string;
+	TopId: string,
+	ParentId?: string;
+	Id: string;
+}
+
+
+export interface IAnswerKey {
+	topId: string,
+	parentId: string;
+	id: string;
+}
+
 export interface IAnswerRow extends IAnswerKey, IRecord {
 	title: string;
-	link?: string;
-	parentId: string | null;
 	groupTitle?: string;
-	isSelected?: boolean;
+	// isSelected?: boolean;
+	included: boolean;
 }
 
 export interface IAnswer extends IAnswerRow {
@@ -137,72 +159,73 @@ export interface IAnswer extends IAnswerRow {
 
 
 
-
-
-export interface IGroupKeyExpanded extends IGroupKey {
-	answerId: string | null;
+export interface IAnswerKeyDto {
+	Workspace?: string;
+	TopId: string,
+	ParentId: string | null;
+	Id: string;
 }
 
-export interface ILocStorage {
-	lastGroupKeyExpanded: IGroupKeyExpanded | null
+export class AnswerKeyDto {
+	constructor(key: IAnswerKey, Workspace: string) { //, parentId: string) {
+		const { topId, parentId, id } = key;
+		this.dto = {
+			Workspace,
+			TopId: topId,
+			ParentId: parentId,
+			Id: id
+		}
+	}
+	dto: IAnswerKeyDto
 }
 
 
-export interface IGroupKeyExtended extends IGroupKey {
-	title: string;
-}
 
-
-export interface IAnswerKey { //} extends IGroupKey {
-	topId: string,
-	parentId: string | null;
-	id: string;
-}
-
-export interface IHistoryAnswerKey {
-	topId: string,
-	id: string;
-}
 
 
 export interface IVariation {
 	name: string;
 }
 
+// IGroup rather than IGroupRow
+export const IsGroup = (obj: any): boolean => typeof obj === 'object' && obj !== null &&
+	obj.hasOwnProperty('doc1') && typeof obj.doc1 === 'string';
+
 
 
 export class AnswerRow {
 	constructor(rowDto: IAnswerRowDto) { //, parentId: string) {
-		const { TopId, Id, ParentId, Title, Link, GroupTitle, Created, Modified, Included } = rowDto;
+		const { TopId, ParentId, Id, Title, GroupTitle, Created, Modified, Included } = rowDto;
 		this.answerRow = {
 			topId: TopId,
-			id: Id,
 			parentId: ParentId ?? '',
+			id: Id,
 			title: Title,
-			link: Link,
 			groupTitle: GroupTitle,
 			created: new Dto2WhoWhen(Created!).whoWhen,
 			modified: Modified
 				? new Dto2WhoWhen(Modified).whoWhen
 				: undefined,
-			isSelected: Included
+			included: Included ?? false
+			//isSelected: Included
 		}
 	}
 	answerRow: IAnswerRow
 }
 
 export class AnswerRowDto {
-	constructor(row: IAnswerRow) { //, parentId: string) {
+	constructor(row: IAnswerRow, Workspace: string) { //, parentId: string) {
+		const { topId, parentId, id, created, modified, included } = row;
 		this.answerRowDto = {
-			TopId: row.topId,
-			Id: row.id,
-			ParentId: row.parentId ?? '',
-			Title: row.title,
-			Link: row.link ?? '',
+			Workspace,
+			TopId: topId,
+			ParentId: parentId ?? '',
+			Id: id,
+			Title: '',
 			GroupTitle: '',
-			Created: new WhoWhen2Dto(row.created!).whoWhenDto!,
-			Modified: new WhoWhen2Dto(row.modified).whoWhenDto!,
-			Included: row.isSelected
+			Created: new WhoWhen2Dto(created!).whoWhenDto!,
+			Modified: new WhoWhen2Dto(modified).whoWhenDto!,
+			Included: included
 		}
 	}
 	answerRowDto: IAnswerRowDto
@@ -210,26 +233,35 @@ export class AnswerRowDto {
 
 
 export class GroupKey {
-	constructor(cat: IGroupRow | IGroup | IGroupKeyExtended) {
-		this.groupKey = cat
-			? {
-				topId: cat.topId,
-				id: cat.id,
-				parentId: cat.parentId
-			}
-			: null
+	constructor(x: IAnswerKey | IGroupRow | IGroup | IGroupKey) {
+		const { topId, id, parentId } = x;
+		this.groupKey = {
+			topId,
+			id,
+			parentId
+		}
 	}
-	groupKey: IGroupKey | null;
+	groupKey: IGroupKey;
+	toQuery = (workspace: string) => {
+		const { topId, id, parentId } = this.groupKey;
+		return [
+			`grpKey.workspace=${encodeURIComponent(workspace)}`,
+			`grpKey.topId=${encodeURIComponent(topId)}`,
+			`grpKey.id=${encodeURIComponent(id)}`,
+			`grpKey.parentId=${encodeURIComponent(parentId ?? 'null')}`
+		].join('&')
+	};
 }
+
 
 
 export class Group {
 	constructor(dto: IGroupDto) {
-		const { TopId, Id, Kind, ParentId, Title, Link, Header, Level, Variations, NumOfAnswers,
-			HasSubGroups, GroupRowDtos, Created, Modified, AnswerRowDtos, IsExpanded, Doc1 } = dto;
+		const { TopId, Id, ParentId, Kind, Title, Link, Header, Level, Variations, NumOfAnswers,
+			HasSubGroups, SubGroupRowDtos, Created, Modified, AnswerRowDtos, IsExpanded, Doc1 } = dto;
 
-		const subGroupRows = GroupRowDtos
-			? GroupRowDtos.map((rowDto: IGroupRowDto) => new GroupRow(rowDto).groupRow)
+		const groupRows = SubGroupRowDtos
+			? SubGroupRowDtos.map((rowDto: IGroupRowDto) => new GroupRow(rowDto).groupRow)
 			: [];
 
 		const answerRows = AnswerRowDtos
@@ -237,23 +269,23 @@ export class Group {
 			: [];
 
 		this.group = {
-			topId: TopId!, //?
+			topId: TopId,
 			id: Id,
+			parentId: ParentId ?? null,
 			kind: Kind,
-			parentId: ParentId!,
 			title: Title,
-			link: Link ?? null,
+			link: Link,
 			header: Header,
 			level: Level!,
 			variations: Variations ?? [],
 			hasSubGroups: HasSubGroups!,
-			groupRows: subGroupRows,
+			groupRows,
 			created: new Dto2WhoWhen(Created!).whoWhen,
 			modified: Modified
 				? new Dto2WhoWhen(Modified).whoWhen
 				: undefined,
 			numOfAnswers: NumOfAnswers!,
-			answerRows,
+			answerRows: answerRows ?? [],
 			isExpanded: IsExpanded === true,
 			doc1: Doc1
 		}
@@ -262,20 +294,20 @@ export class Group {
 }
 
 export class GroupDto {
-	constructor(group: IGroup) {
-		const { topId, id, kind, title, link, header, level, variations, created, modified, doc1 } = group;
-
+	constructor(group: IGroup, Workspace: string) {
+		const { topId, id, parentId, kind, title, link, header, level, variations, created, modified, doc1 } = group;
 		this.groupDto = {
-			TopId: topId!, // ?
+			Workspace,
+			TopId: topId,
 			Id: id,
-			ParentId: '',
 			Kind: kind,
+			ParentId: parentId,
 			Title: title,
-			Link: link ?? undefined,
+			Link: link,
 			Header: header ?? '',
 			Level: level,
 			HasSubGroups: true,
-			GroupRowDtos: [],
+			SubGroupRowDtos: [],
 			NumOfAnswers: 0,
 			AnswerRowDtos: [],
 			Variations: variations,
@@ -287,24 +319,23 @@ export class GroupDto {
 	groupDto: IGroupDto;
 }
 
-
+// dupliakt, ima u AnswerProvideru
 export class Answer {
 	constructor(dto: IAnswerDto) { //, parentId: string) {
+
 		// TODO possible to call base class construtor
-		const { TopId, Id, ParentId, Title, Link, GroupTitle, Source, Status, Included, Created, Modified } = dto;
 		this.answer = {
-			parentId: ParentId ?? '',
-			topId: TopId,
-			id: Id,
-			title: Title,
-			link: Link,
-			groupTitle: GroupTitle ?? 'nadji me',
-			source: Source ?? 0,
-			status: Status ?? 0,
-			isSelected: Included !== undefined,
-			created: new Dto2WhoWhen(Created!).whoWhen,
-			modified: Modified
-				? new Dto2WhoWhen(Modified).whoWhen
+			topId: dto.TopId, // TODO will be set later
+			parentId: dto.ParentId ?? '',
+			id: dto.Id,
+			title: dto.Title,
+			groupTitle: dto.GroupTitle,
+			source: dto.Source ?? 0,
+			status: dto.Status ?? 0,
+			included: dto.Included !== undefined,
+			created: new Dto2WhoWhen(dto.Created!).whoWhen,
+			modified: dto.Modified
+				? new Dto2WhoWhen(dto.Modified).whoWhen
 				: undefined
 		}
 	}
@@ -312,27 +343,34 @@ export class Answer {
 }
 
 export class AnswerKey {
-	constructor(answer: IAnswerRow | IAnswer) {
-		this.answerKey = answer
-			? {
-				topId: answer.topId,
-				id: answer.id,
-				parentId: answer.parentId ?? null
-			}
-			: null
+	constructor(answer: IAnswerRow | IAnswer | IAnswerKey) { //| undefined) {
+		this.answerKey = {
+			topId: answer.topId,
+			parentId: answer.parentId ?? null,
+			id: answer.id
+		}
 	}
-	answerKey: IAnswerKey | null;
+	answerKey: IAnswerKey;
+	toQuery = (workspace: string) => {
+		const { topId, parentId, id } = this.answerKey;
+		return [
+			`qKey.workspace=${encodeURIComponent(workspace)}`,
+			`qKey.topId=${encodeURIComponent(topId)}`,
+			`qKey.parentId=${encodeURIComponent(parentId ?? 'null')}`,
+			`qKey.id=${encodeURIComponent(id)}`
+		].join('&')
+	};
 }
 
 export class AnswerDto {
-	constructor(answer: IAnswer) {
-		const { topId, id, parentId, title, link, source, status, created, modified } = answer;
+	constructor(answer: IAnswer, Workspace: string) {
+		const { topId, parentId, id, title, source, status, created, modified } = answer;
 		this.answerDto = {
+			Workspace,
 			TopId: topId,
-			Id: id,
 			ParentId: parentId ?? 'null',  // TODO proveri
+			Id: id,
 			Title: title,
-			Link: link ?? '',
 			Source: source,
 			Status: status,
 			Created: new WhoWhen2Dto(created).whoWhenDto!,
@@ -344,7 +382,6 @@ export class AnswerDto {
 
 export interface IAnswerRowDto extends IDtoKey {
 	Title: string;
-	Link?: string;
 	GroupTitle?: string;
 	Included?: boolean;
 	Source?: number;
@@ -357,7 +394,7 @@ export interface IAnswerRowDtosEx {
 }
 
 export interface IAnswerDto extends IAnswerRowDto {
-	oldParentGroup?: string;
+	oldParentId?: string;
 }
 
 export interface IAnswerDtoEx {
@@ -401,24 +438,25 @@ export interface IGroupInfo {
 }
 
 export interface IExpandInfo {
-	topId: string;
 	groupKey: IGroupKey;
 	formMode: FormMode;
 	includeAnswerId?: string;
 	newGroupRow?: IGroupRow;
-	newAnswer?: IAnswerRow;
+	newAnswerRow?: IAnswerRow;
+	byClick?: boolean;
 }
+
 
 export interface IParentInfo {
 	//execute?: (method: string, endpoint: string) => Promise<any>,
 	// topId: string | null,
 	// parentId: string | null,
 	//groupKey: IGroupKey,
-	groupRow: IGroupRow,
+	groupRow: IGroupRow | null,
 	startCursor?: number,
 	includeAnswerId?: string | null
 	level?: number,
-	title?: string, // to easier follow getting the list of sub-groups
+	title: string, // to easier follow getting the list of sub-groups
 	inAdding?: boolean,
 	isExpanded?: boolean
 	//subGroups?: IGroup[]
@@ -427,23 +465,29 @@ export interface IParentInfo {
 export interface IGroupsState {
 	formMode: FormMode;
 	topRows: IGroupRow[];
+	allGroupRows: Map<string, IGroupRow>;
+	allGroupRowsLoaded?: number;
 	topRowsLoading: boolean;
 	topRowsLoaded: boolean;
-	keyExpanded: IGroupKeyExpanded | null;
+	keyExpanded: IKeyExpanded | null; // IGroupKey + answerId
 	groupId_answerId_done?: string;
 	nodeOpening: boolean;
 	nodeOpened: boolean;
+	rowExpanding: boolean;
+	rowExpanded: boolean;
 	activeGroup: IGroup | null;
 	activeAnswer: IAnswer | null;
+	selectedAnswerId: string | null;
 	loadingGroups: boolean,
 	loadingAnswers: boolean,
-	loadingGroup: boolean,
-	loadingAnswer: boolean, error?: Error;
+	loadingGroup: boolean, groupLoaded: boolean,
+	loadingAnswer: boolean, answerLoaded: boolean,
+	error?: Error;
 	whichRowId?: string; // group.id or answer.id
 }
 
 export interface ILocStorage {
-	lastGroupKeyExpanded: IGroupKeyExpanded | null;
+	keyExpanded: IKeyExpanded | null
 }
 
 export interface ILoadGroupAnswers {
@@ -454,9 +498,11 @@ export interface ILoadGroupAnswers {
 
 export interface IGroupsContext {
 	state: IGroupsState,
-	expandNodeUpToTheTree: (keyExpanded: IGroupKeyExpanded, fromChatBotDlg?: string) => Promise<any>;
-	loadTopGroupRows: () => Promise<any>,
-	addSubGroup: (groupRow: IGroupRow) => Promise<any>;
+	loadAllGroupRows: () => Promise<boolean>;
+	getGrp: (id: string) => Promise<IGroupRow | undefined>;
+	expandNodesUpToTheTree: (grpKey: IGroupKey, answerId: string | null, fromChatBotDlg?: string) => Promise<any>;
+	loadTopRows: () => Promise<any>,
+	addSubGroup: (parentGroupRow: IGroupRow | null) => Promise<any>;
 	cancelAddGroup: () => Promise<any>;
 	createGroup: (group: IGroup) => void,
 	viewGroup: (groupRow: IGroupRow, includeAnswerId: string) => void,
@@ -466,16 +512,20 @@ export interface IGroupsContext {
 	deleteGroupVariation: (groupKey: IGroupKey, name: string) => void,
 	expandGroup: (expandInfo: IExpandInfo) => Promise<any>,
 	collapseGroup: (groupRow: IGroupRow) => void,
+	// findGroup: (groupRows: IGroupRow[], id: string) => IGroupRow | undefined;
+	onGroupTitleChanged: (group: IGroup, title: string) => void;
 	//////////////
 	// answers
 	loadGroupAnswers: (catParams: ILoadGroupAnswers) => void;  //(parentInfo: IParentInfo) => void,
-	addAnswer: (groupKey: IGroupKey, topId: string) => Promise<any>;
+	getSubGrps: (groupId: string | null) => Promise<any>;
+	addAnswer: (groupKey: IGroupKey, isExpanded: boolean) => Promise<any>;
 	cancelAddAnswer: () => Promise<any>;
 	createAnswer: (answer: IAnswer, fromModal: boolean) => Promise<any>;
 	viewAnswer: (answerRow: IAnswerRow) => void;
 	editAnswer: (answerRow: IAnswerRow) => void;
-	updateAnswer: (topId: string, oldParentGroup: string, answer: IAnswer, groupChanged: boolean) => Promise<any>;
-	deleteAnswer: (answerRow: IAnswerRow) => void;
+	updateAnswer: (oldParentId: string, answer: IAnswer, groupChanged: boolean) => Promise<any>;
+	deleteAnswer: (answerRow: IAnswerRow, isActive: boolean) => void;
+	onAnswerTitleChanged: (topRow: IGroupRow, answer: IAnswer, title: string) => void;
 }
 
 export interface IGroupFormProps {
@@ -496,28 +546,33 @@ export interface IAnswerFormProps {
 	children: string
 }
 
-/////////////////////////////////////////////////
-// 
+
+
 export enum ActionTypes {
+	SET_FROM_LOCAL_STORAGE = "SET_FROM_LOCAL_STORAGE",
 	SET_TOP_ROWS = 'SET_TOP_ROWS',
-	SET_NODE_OPENED = "SET_NODE_OPENED",
-	SET_LOADING_GROUPS = 'SET_LOADING_GROUPS',
+	SET_NODE_EXPANDED_UP_THE_TREE = "SET_NODE_EXPANDED_UP_THE_TREE",
 	SET_LOADING_GROUP = 'SET_LOADING_GROUP',
 	SET_LOADING_ANSWER = 'SET_LOADING_ANSWER',
 	SET_TOP_ROWS_LOADING = 'SET_TOP_ROWS_LOADING',
-	SET_GROUP_ANSWERS_LOADING = 'SET_GROUP_ANSWERS_LOADING',
+	SET_ANSWERS_LOADING = 'SET_ANSWERS_LOADING',
 	SET_SUB_GROUPS = 'SET_SUB_GROUPS',
-	SET_ERROR = 'SET_ERROR',
+	SET_GROUP_ERROR = 'SET_GROUP_ERROR',
 	ADD_SUB_GROUP = 'ADD_SUB_GROUP',
 	GROUP_TITLE_CHANGED = 'GROUP_TITLE_CHANGED',
 	CANCEL_ADD_SUB_GROUP = 'CANCEL_ADD_SUB_GROUP',
 	SET_GROUP = 'SET_GROUP',
-	SET_GROUP_ROW = 'SET_GROUP_ROW',
+	//SET_GROUP_ROW = 'SET_GROUP_ROW',
+	ADD_NEW_ANSWER_TO_ROW = 'ADD_NEW_ANSWER_TO_ROW',
 	SET_ROW_EXPANDING = 'SET_ROW_EXPANDING',
 	SET_ROW_EXPANDED = 'SET_ROW_EXPANDED',
 	SET_ROW_COLLAPSING = 'SET_ROW_COLLAPSING',
 	SET_ROW_COLLAPSED = 'SET_ROW_COLLAPSED',
+	SET_GROUP_TO_ADD_TOP = 'SET_GROUP_TO_ADD_TOP',
+	SET_GROUP_TO_ADD = 'SET_GROUP_TO_ADD',
 	SET_GROUP_ADDED = 'SET_GROUP_ADDED',
+	SET_ALL_GROUP_ROWS = 'SET_ALL_GROUP_ROWS',
+
 	SET_GROUP_TO_VIEW = 'SET_GROUP_TO_VIEW',
 	SET_GROUP_TO_EDIT = 'SET_GROUP_TO_EDIT',
 	SET_GROUP_UPDATED = 'SET_GROUP_UPDATED',
@@ -527,8 +582,8 @@ export enum ActionTypes {
 	CLOSE_GROUP_FORM = 'CLOSE_GROUP_FORM',
 	CANCEL_GROUP_FORM = 'CANCEL_GROUP_FORM',
 
-	NODE_OPENING = "NODE_OPENING",
-	FORCE_OPEN_NODE = "FORCE_OPEN_NODE",
+	SET_NODE_EXPANDING_UP_THE_TREE = "SET_NODE_EXPANDING_UP_THE_TREE",
+	FORCE_GROUP_OPEN_NODE = "FORCE_GROUP_OPEN_NODE",
 
 	// answers
 	GROUP_ANSWERS_LOADED = 'GROUP_ANSWERS_LOADED',
@@ -542,34 +597,50 @@ export enum ActionTypes {
 	SET_ANSWER_SELECTED = 'SET_ANSWER_SELECTED',
 	SET_ANSWER = 'SET_ANSWER',
 	SET_ANSWER_AFTER_ASSIGN_ANSWER = 'SET_ANSWER_AFTER_ASSIGN_ANSWER',
-	SET_ANSWER_ANSWERS = 'SET_ANSWER_ANSWERS',
-	DELETE_ANSWER = 'DELETE_ANSWER',
+	ANSWER_DELETED = 'ANSWER_DELETED',
 
 	CLOSE_ANSWER_FORM = 'CLOSE_ANSWER_FORM',
 	CANCEL_ANSWER_FORM = 'CANCEL_ANSWER_FORM'
 }
 
-
-export const actionTypesStoringToLocalStorage = [
-	// ActionTypes.SET_GROUP_NODE_OPENED
+export const actionStoringToLocalStorage = [
+	ActionTypes.SET_FROM_LOCAL_STORAGE,
 	ActionTypes.SET_ROW_EXPANDED,
 	ActionTypes.SET_ROW_COLLAPSED,
+	ActionTypes.SET_GROUP_ADDED,
 	ActionTypes.SET_GROUP_TO_VIEW,
 	ActionTypes.SET_GROUP_TO_EDIT,
 	ActionTypes.SET_ANSWER_TO_VIEW,
 	ActionTypes.SET_ANSWER_TO_EDIT,
-	ActionTypes.FORCE_OPEN_NODE
+	ActionTypes.FORCE_GROUP_OPEN_NODE
 ];
 
+export const doNotModifyTree = [
+	//ActionTypes.SET_TOP_ROWS_LOADING,
+	//ActionTypes.SET_TOP_ROWS,
+	ActionTypes.SET_NODE_EXPANDING_UP_THE_TREE,
+	//ActionTypes.SET_NODE_OPENED,
+	//ActionTypes.SET_GROUP_TO_ADD,
+	ActionTypes.SET_GROUP_UPDATED,
+	ActionTypes.ADD_NEW_ANSWER_TO_ROW,
+	ActionTypes.CANCEL_GROUP_FORM,
+	ActionTypes.CLOSE_GROUP_FORM
+]
 
-export type GroupsPayload = {
+export const doNotCallInnerReducerActions = [
+	ActionTypes.GROUP_TITLE_CHANGED,
+	ActionTypes.ANSWER_TITLE_CHANGED,
+	ActionTypes.ADD_SUB_GROUP
+]
 
+export type Payload = {
 
-	[ActionTypes.SET_TOP_ROWS_LOADING]: {
+	[ActionTypes.SET_FROM_LOCAL_STORAGE]: {
 		groupRow?: IGroupRow;
+		keyExpanded: IKeyExpanded
 	}
 
-	[ActionTypes.SET_LOADING_GROUPS]: {
+	[ActionTypes.SET_TOP_ROWS_LOADING]: {
 		groupRow?: IGroupRow;
 	}
 
@@ -581,23 +652,25 @@ export type GroupsPayload = {
 		groupRow?: IGroupRow;
 	}
 
-
-	[ActionTypes.SET_GROUP_ANSWERS_LOADING]: {
+	[ActionTypes.SET_ANSWERS_LOADING]: {
 		groupRow?: IGroupRow;
-		answerLoading: boolean;
 	}
 
-	[ActionTypes.NODE_OPENING]: {
+	[ActionTypes.SET_NODE_EXPANDING_UP_THE_TREE]: {
 		groupRow?: IGroupRow;
-		//keyExpanded: IGroupKeyExpanded
+		fromChatBotDlg: boolean;
+		//groupKeyExpanded: IAnswerKey
 	};
 
-	[ActionTypes.SET_NODE_OPENED]: {
+	[ActionTypes.SET_NODE_EXPANDED_UP_THE_TREE]: {
 		// groupNodesUpTheTree: IGroupKeyExtended[]; /// we could have used Id only
-		groupRow: IGroupRow;
-		keyExpanded: IGroupKeyExpanded;
+		groupRow?: IGroupRow;
+		group: IGroup | null,
+		formMode: FormMode,
+		grpKey: IGroupKey;
 		answerId: string | null,
-		fromChatBotDlg: boolean;
+		answer: IAnswer | null,
+		fromChatBotDlg?: boolean;
 	};
 
 
@@ -619,30 +692,30 @@ export type GroupsPayload = {
 		level: number
 	}
 
+	[ActionTypes.SET_ALL_GROUP_ROWS]: {
+		groupRow?: IGroupRow;
+		allGroupRows: Map<string, IGroupRow>
+	};
+
 	[ActionTypes.GROUP_TITLE_CHANGED]: {
 		groupRow?: IGroupRow;
-		id: string;
-		value: string;
 	}
 
 	[ActionTypes.ANSWER_TITLE_CHANGED]: {
 		groupRow?: IGroupRow;
-		groupId: string;
-		id: string;
-		value: string;
 	}
-
-
 
 	[ActionTypes.CANCEL_ADD_SUB_GROUP]: {
 		groupRow?: IGroupRow;
 	}
 
-
 	[ActionTypes.SET_GROUP]: {
 		groupRow: IGroup;
 	};
 
+	// [ActionTypes.SET_GROUP_ROW]: {
+	// 	groupRow: IGroupRow;
+	// };
 
 	[ActionTypes.SET_GROUP_TO_VIEW]: {
 		groupRow: IGroupRow; // IGroup extends IGroupRow
@@ -650,10 +723,18 @@ export type GroupsPayload = {
 
 	[ActionTypes.SET_GROUP_TO_EDIT]: {
 		groupRow: IGroupRow; // IGroup extends IGroupRow
+		group: IGroup
 	};
 
 	[ActionTypes.SET_GROUP_UPDATED]: {
-		groupRow: IGroupRow; // IGroup extends IGroupRow
+		groupRow?: IGroupRow; // IGroup extends IGroupRow
+		group: IGroup
+	};
+
+
+	[ActionTypes.ADD_NEW_ANSWER_TO_ROW]: {
+		groupRow?: IGroupRow;
+		newAnswerRow: IAnswerRow;
 	};
 
 
@@ -664,7 +745,7 @@ export type GroupsPayload = {
 	[ActionTypes.SET_ROW_EXPANDED]: {
 		groupRow: IGroupRow;
 		formMode: FormMode;
-		selectedAnswerId?: string;
+		selectedAnswerId?: string | null;
 	};
 
 	[ActionTypes.SET_ROW_COLLAPSING]: {
@@ -673,6 +754,18 @@ export type GroupsPayload = {
 
 	[ActionTypes.SET_ROW_COLLAPSED]: {
 		groupRow: IGroupRow;
+	};
+
+	[ActionTypes.SET_GROUP_TO_ADD_TOP]: {
+		groupRow?: IGroupRow;
+		newGroupRow: IGroupRow;
+		//group: IGroup;
+	};
+
+	[ActionTypes.SET_GROUP_TO_ADD]: {
+		groupRow: IGroupRow;
+		newGroupRow: IGroupRow;
+		//group: IGroup;
 	};
 
 	[ActionTypes.SET_GROUP_ADDED]: {
@@ -695,7 +788,7 @@ export type GroupsPayload = {
 	};
 
 
-	[ActionTypes.SET_ERROR]: {
+	[ActionTypes.SET_GROUP_ERROR]: {
 		groupRow?: IGroupRow;
 		error: Error;
 		whichRowId?: string;
@@ -705,9 +798,9 @@ export type GroupsPayload = {
 		groupRow?: IGroupRow
 	};
 
-	[ActionTypes.FORCE_OPEN_NODE]: {
+	[ActionTypes.FORCE_GROUP_OPEN_NODE]: {
 		groupRow?: IGroupRow,
-		keyExpanded: IGroupKeyExpanded
+		keyExpanded: IKeyExpanded
 	};
 
 
@@ -755,8 +848,7 @@ export type GroupsPayload = {
 	};
 
 
-
-	[ActionTypes.DELETE_ANSWER]: {
+	[ActionTypes.ANSWER_DELETED]: {
 		groupRow?: IGroupRow;
 		answer: IAnswer
 	};
@@ -772,6 +864,6 @@ export type GroupsPayload = {
 	};
 };
 
-export type GroupsActions =
-	ActionMap<GroupsPayload>[keyof ActionMap<GroupsPayload>];
+export type Actions =
+	ActionMap<Payload>[keyof ActionMap<Payload>];
 

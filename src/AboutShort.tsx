@@ -36,7 +36,7 @@ const AboutShort: React.FC<IAboutShort> = () => {
               <li className="my-1">Create your Workspace at our platform</li>
               <li className="my-1">Use our Web App for maintenace of your Q/A</li>
               <li className="my-1">
-                Integrate our KnowledgeLIB<br />
+                Integrate our Knowledge-Lib<br />
                 <i>'ChatBot JavaScript Library'</i> at your Web site &nbsp;&nbsp;
                 <br />
                 <a href="https://knowledge-share-demo.com" target="_blank" rel="noopener noreferrer">Try it</a>
@@ -123,7 +123,7 @@ const AboutShort: React.FC<IAboutShort> = () => {
         <div className="card card-block col-12 m-3">
           <Accordion defaultActiveKey="null">
             <Accordion.Item eventKey="0">
-              <Accordion.Header>Integrate KnowledgeLIB at WordPress site</Accordion.Header>
+              <Accordion.Header>Integrate Knowledge-Lib at WordPress site</Accordion.Header>
               <Accordion.Body>
                 <pre>
                   <div className="bg-warning w-auto"><b>Header</b></div>
@@ -167,7 +167,7 @@ const AboutShort: React.FC<IAboutShort> = () => {
                     <a href="https://github.com/SlavkoPar/knowledge" target="_blank" rel="noopener noreferrer">React Single Page App</a>
                   </li>
                   <li>
-                    <a href="https://github.com/SlavkoPar/knowledge" target="_blank" rel="noopener noreferrer"><i>KnowledgeLIB</i>&nbsp;&nbsp;JavaScript Library</a>
+                    <a href="https://github.com/SlavkoPar/knowledge-lib" target="_blank" rel="noopener noreferrer"><i>Knowledge-Lib</i>&nbsp;&nbsp;JavaScript Library</a>
                   </li>
                 </ul>
               </Accordion.Body>

@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useReducer, type Dispatch, useCallback, useEffect } from "react";
 
 import type {
-  IGlobalContext, 
-  IHistory, 
+  IGlobalContext,
+  IHistory,
   IGlobalState,
   IHistoryFilter,
 } from '@/global/types'
 
-import { GlobalActionTypes} from '@/global/types'
+import { GlobalActionTypes } from '@/global/types'
 
 import { HistoryDto, HistoryFilterDto } from '@/global/types'
 
@@ -16,13 +16,13 @@ import { GlobalReducer, initialAuthUser } from "@/global/GlobalReducer";
 import type {
   IQuestionRow, IQuestionRowDto, IQuestionRowDtosEx,
   IQuestionDtoEx, IQuestionEx, IQuestionKey,
-  ICategoryRowDto, ICategoryRow, 
+  ICategoryRowDto, ICategoryRow,
 } from "@/categories/types";
 
 import { CategoryRow, QuestionKey, Question } from "@/categories/types";
 
 import type {
-  IAnswer, IAnswerDto, IAnswerKey, IAnswerRow, IAnswerRowDto, IAnswerRowDtosEx,  IGroupRow, IGroupRowDto
+  IAnswer, IAnswerDto, IAnswerKey, IAnswerRow, IAnswerRowDto, IAnswerRowDtosEx, IGroupRow, IGroupRowDto
 } from "@/groups/types";
 
 import { Answer, GroupRow } from "@/groups/types";
@@ -40,8 +40,21 @@ interface Props {
   children: React.ReactNode
 }
 
+const endPoints = protectedResources.KnowledgeAPI.endPoints;
 const initGlobalState: IGlobalState = {
-  KnowledgeAPI: protectedResources.KnowledgeAPI,
+  KnowledgeAPI: {
+    endpointCategoryRow: endPoints.Category.Row,
+    endpointCategory: endPoints.Category.Category,
+    endpointQuestion: endPoints.Category.Question,
+    endpointQuestionAnswer: endPoints.Category.QuestionAnswer,
+
+    endpointGroupRow: endPoints.Group.Row,
+    endpointGroup: endPoints.Group.Group,
+    endpointAnswer: endPoints.Group.Answer,
+
+    endpointHistory: endPoints.History.endpointHistory,
+    endpointHistoryFilter: endPoints.History.endpointHistoryFilter,
+  },
   workspace: 'unknown',
   authUser: initialAuthUser,
   isAuthenticated: false,
@@ -233,7 +246,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               groupRow.titlesUpTheTree = titlesUpTheTree;
               allGroupRows.set(id, groupRow);
             })
-            dispatch({ type: GlobalActionTypes.SET_ALL_GROUP_ROWS, payload: { allGroupRows } });
+            dispatch({ type: GlobalActionTypes.SET_ALL_GROUP_ROWS_GLOBAL, payload: { allGroupRows } });
             resolve(true)
           });
       }
@@ -511,7 +524,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return [];
   } */
 
-  const getSubCats = useCallback(async (categoryId: string | null) => {
+  const getSubCatsGlobal = useCallback(async (categoryId: string | null) => {
     try {
       let parentHeader = "";
       const subCats: ICategoryRow[] = [];
@@ -780,7 +793,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }, [KnowledgeAPI.endpointHistoryFilter, workspace]);
 
   const setLastRouteVisited = useCallback((lastRouteVisited: string): void => {
-    console.log('GlobalActionTypes.SET_LAST_ROUTE_VISITEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
     dispatch({ type: GlobalActionTypes.SET_LAST_ROUTE_VISITED, payload: { lastRouteVisited } });
   }, []);
 
@@ -794,7 +806,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     <GlobalContext.Provider value={{
       globalState, setLastRouteVisited,
       health,
-      loadAllCategoryRowsGlobal, getCat, getSubCats, getCatsByKind,
+      loadAllCategoryRowsGlobal, getCat, getSubCats: getSubCatsGlobal, getCatsByKind,
       searchQuestions, getQuestion,
       loadAndCacheAllGroupRows, globalGetGroupRow, getGroupRows, getGroupRowsByKind, searchAnswers, getAnswer,
       setNodesReloaded,

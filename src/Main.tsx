@@ -1,3 +1,5 @@
+
+import { lazy, Suspense } from 'react'
 import { MsalProvider, AuthenticatedTemplate, useMsal, UnauthenticatedTemplate } from '@azure/msal-react';
 import { Container } from 'react-bootstrap';
 import { PageLayout } from './PageLayout';
@@ -8,7 +10,7 @@ import { PublicClientApplication } from '@azure/msal-browser';
 import { GlobalProvider } from '@/global/GlobalProvider';
 //import { BrowserRouter as Router } from 'react-router-dom'
 
-import App from './App';
+//import App from './App';
 import AboutShort from './AboutShort';
 
 /**
@@ -39,6 +41,11 @@ const MainContent = () => {
             .catch((error) => console.log(error));
     };
     */
+    const App = lazy(() =>
+        // named export
+        import("./App").then((module) => ({ default: module.default }))
+    );
+
     return (
         <div className="App">
             <AuthenticatedTemplate>
@@ -47,7 +54,9 @@ const MainContent = () => {
                         {/* <span>Moj id token</span>
                     <IdTokenData idTokenClaims={activeAccount.idTokenClaims} /> */}
                         <GlobalProvider>
-                            <App />
+                            <Suspense fallback={<div>Loading...</div>}>
+                                <App />
+                            </Suspense>
                         </GlobalProvider>
                     </Container>
                 ) : null}

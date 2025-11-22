@@ -87,6 +87,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     const [queue2, setQueue2] = useState<boolean>(false);
     useEffect(() => {
         if (queue2) {// && categoryRow.id === 'generateId') {
+            // actegoryRow is after reducer update
             addQuestion(categoryKey, isExpanded ?? false);
             setQueue2(false);
         }
@@ -116,7 +117,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     const Row1 =
         <div>
-            <div id={`Row${id}`} className={`d-flex justify-content-start align-items-center w-100 category-row${isSelected ? '-selected' : ''}`} style={{ marginTop: '1px' }}>
+            <div id={`Row${id}`} className={`d-relative d-flex justify-content-start align-items-center w-100 mt-1 category-row${isSelected ? '-selected' : ''}`} >
                 <Button
                     variant='link'
                     size="sm"
@@ -158,54 +159,58 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                 }
 
                 {canEdit && hovering && // && !alreadyAdding
-                    // <div className="position-absolute d-flex align-items-center top-0 end-0 me-3">
-                    <div className="position-relative float-end d-flex align-items-center top-0 end-0">
-                        <Button
-                            variant='link'
-                            size="sm"
-                            className="border-0 py-0 ms-0 text-white"
-                            title="Add SubCategory"
-                            onClick={async () => {
-                                //dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM, payload: {} })
-                                if (!isExpanded && (hasSubCategories || numOfQuestions > 0)) {
-                                    await handleExpandClick();
-                                }
-                                setTimeout(() => setQueue(true), 500);
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faPlus} size='lg' />
-                        </Button>
+                    <div className="position-absolute float-end d-flex align-items-center border border-1 rounded-3 px-1 py-0 bg-dark category-row-actions end-0">
+                        <div className="d-flex align-items-center">
+                            <Button
+                                variant='link'
+                                size="sm"
+                                className="border-0 py-0 ms-0 text-white"
+                                title="Add SubCategory"
+                                onClick={async () => {
+                                    //dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM, payload: {} })
+                                    if (!isExpanded && (hasSubCategories || numOfQuestions > 0)) {
+                                        await handleExpandClick();
+                                    }
+                                    setTimeout(() => setQueue(true), 500);
+                                }}
+                            >
+                                <FontAwesomeIcon icon={faPlus} size='lg' />
+                            </Button>
+                        </div>
+
+                        {!inAdding && !hasSubCategories &&
+                            // top-0 end-0
+                            <div className="">
+                                <Button variant='link' size="sm" className="d-flex align-items-center"
+                                    disabled={hasSubCategories || numOfQuestions > 0}
+                                    onClick={deleteCategoryRow}
+                                >
+                                    <FontAwesomeIcon icon={faRemove} size='lg' />
+                                </Button>
+
+                                <Button
+                                    variant='link'
+                                    size="sm"
+                                    className="py-0 mx-0 text-secondary d-flex align-items-center"
+                                    title="Add Question"
+                                    onClick={async () => {
+                                        //const categoryInfo: ICategoryInfo = { categoryKey: { workspace: topId, id: categoryRow.id }, level: categoryRow.level }
+                                        if (!isExpanded && (hasSubCategories || numOfQuestions > 0)) {
+                                            await handleExpandClick();
+                                        }
+                                        setTimeout(() => setQueue2(true), 500);
+                                    }}
+                                >
+                                    <img width="22" height="18" src={QPlus} alt="Add Question" />
+                                </Button>
+                            </div>
+                        }
+
                     </div>
                 }
 
                 {/* TODO what about archive questions  numOfQuestions === 0 &&*/}
-                {canEdit && !inAdding && hovering && !hasSubCategories &&
-                    // top-0 end-0
-                    <div className="">
-                        <Button variant='link' size="sm" className="py-0 mx-0 position-relative float-end d-flex align-items-center"
-                            disabled={hasSubCategories || numOfQuestions > 0}
-                            onClick={deleteCategoryRow}
-                        >
-                            <FontAwesomeIcon icon={faRemove} size='lg' />
-                        </Button>
 
-                        <Button
-                            variant='link'
-                            size="sm"
-                            className="py-0 mx-0 text-secondary position-relative float-end d-flex align-items-center"
-                            title="Add Question"
-                            onClick={async () => {
-                                //const categoryInfo: ICategoryInfo = { categoryKey: { workspace: topId, id: categoryRow.id }, level: categoryRow.level }
-                                if (!isExpanded && (hasSubCategories || numOfQuestions > 0)) {
-                                    await handleExpandClick();
-                                }
-                                setTimeout(() => setQueue2(true), 500);
-                            }}
-                        >
-                            <img width="22" height="18" src={QPlus} alt="Add Question" />
-                        </Button>
-                    </div>
-                }
             </div>
             {showQuestions &&
                 <div className='ps-3'>

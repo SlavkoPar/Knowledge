@@ -5,6 +5,9 @@ import path from 'path';
 export default defineConfig({
    plugins: [react()],
    'base': '/knowledge',
+   build: {
+      sourcemap: true
+   },
    resolve: {
       alias: {
          '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),

@@ -155,10 +155,9 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
                 </Modal.Header>
                 <Modal.Body style={{ height: '40vh', width: '50vw' }} className="answers">
                     <AutoSuggestAnswers
-                        questionKey={questionKey}
-                        tekst={''}
+                        tekst={'tekst'}
+                        onSelectAnswer={onSelectAnswer}
                         allGroupRows={allGroupRows}
-                        onSelectAnswer={(assignedAnswerKey: IAssignedAnswerKey) => onSelectAnswer(assignedAnswerKey)}
                         searchAnswers={searchAnswers}
                     />
                 </Modal.Body>

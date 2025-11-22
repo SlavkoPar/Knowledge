@@ -1,11 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, lazy, Suspense } from 'react';
 import { Container, Row, Col, Button, Offcanvas } from "react-bootstrap";
 //import { useNavigate } from "react-router-dom";
 
 import { useGlobalContext, useGlobalState } from '@/global/GlobalProvider';
 
 import { useParams } from 'react-router-dom' // useRouteMatch
-import { AutoSuggestQuestions } from '@/categories/AutoSuggestQuestions';
+//import { AutoSuggestQuestions } from '@/categories/AutoSuggestQuestions';
 
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // import { faFolder } from '@fortawesome/free-solid-svg-icons'
@@ -103,6 +103,11 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     // useEffect(() => {
     //     scrollToBottom();
     // }, []);
+
+    const AutoSuggestQuestions = lazy(() =>
+        // named export
+        import("@/categories/AutoSuggestQuestions").then((module) => ({ default: module.AutoSuggestQuestions }))
+    );
 
     if (!catsLoaded) // || catsOptions.length === 0)
         return <div>cats not loaded...</div>
@@ -447,12 +452,14 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                         </div>
                     }
                     {!isDisabled &&
-                        <AutoSuggestQuestions
-                            tekst={txt}
-                            onSelectQuestion={onSelectQuestion}
-                            allCategoryRows={allCategoryRows}
-                            searchQuestions={searchQuestions}
-                        />
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <AutoSuggestQuestions
+                                tekst={txt}
+                                onSelectQuestion={onSelectQuestion}
+                                allCategoryRows={allCategoryRows}
+                                searchQuestions={searchQuestions}
+                            />
+                        </Suspense>
                     }
                 </div>
             </div>

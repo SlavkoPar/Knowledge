@@ -1,5 +1,5 @@
 import { useContext, type ReactNode, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { Accordion, AccordionContext, Card, CardHeader, useAccordionButton } from "react-bootstrap";
+import { Accordion, AccordionContext, Card, useAccordionButton } from "react-bootstrap";
 
 import { useGlobalState } from '@/global/GlobalProvider';
 

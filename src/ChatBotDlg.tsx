@@ -49,7 +49,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     const [showAutoSuggest, setShowAutoSuggest] = useState(true); //false);
 
 
-    const [allCategoryRows, setAllCategoryRows] = useState<Map<string, ICategoryRow>>(new Map<string, ICategoryRow>());
+    const [allCategoryRows, setAllCategoryRows] = useState<ICategoryRow[]>([]);
     const childRef = useRef<IChatBotDlgNavigatorMethods | null>(null);
 
     const [pastEvents, setPastEvents] = useState<IChild[]>([]);
@@ -75,44 +75,13 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                 await loadAllCategoryRowsGlobal();
             }
             else {
-                setAllCategoryRows(allCategoryRowsGlobal);
+                setAllCategoryRows(Array.from(allCategoryRowsGlobal.values()));
             }
         })()
     }, [allCategoryRowsGlobalLoaded, loadAllCategoryRowsGlobal]);
 
 
-    // useEffect(() => {
-    //     (async () => {
-    //         const rows = await childRef?.current?.getTopRows();
-    //         setTopRows(rows || []);
-    //     })()
-    // }, [childRef]);
-
-    /*
-    const findCategoryRow = useCallback(
-        (categoryRow: ICategoryRow, id: string): ICategoryRow | undefined => {
-            if (categoryRow.topId === id)
-                return categoryRow;
-            const { categoryRows } = categoryRow;
-            let cat: ICategoryRow | undefined = categoryRows.find(c => c.id === (id ?? 'null'));
-            if (!cat) {
-                try {
-                    categoryRows.forEach(c => {
-                        console.log(id, c.id)
-                        cat = findCategoryRow(c, id);
-                        if (cat) {
-                            throw new Error("Stop the loop");
-                        }
-                    })
-                }
-                catch (e) {
-                    // console.log("Loop stopped");
-                }
-            }
-            return cat;
-        }, []);
-    */
-
+    
     const onEntering = async (/*node: HTMLElement, isAppearing: boolean*/): Promise<any> => {
         const startTime = performance.now();
         await childRef?.current?.resetNavigator();
@@ -452,7 +421,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     console.log("=====================>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> rendering ChatBotDlg")
 
 
-    if (allCategoryRows.size === 0) // || catsOptions.length === 0)
+    if (allCategoryRows.length === 0) // || catsOptions.length === 0)
         return <div>Loading ...</div>
 
     return (

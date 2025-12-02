@@ -17,7 +17,7 @@ import type { IChatBotDlgNavigatorMethods } from './global/types';
 const PINK = 'rgba(255, 192, 203, 0.6)';
 const BLUE = 'rgb(224, 207, 252)';
 
-const ChatBotDlgNavigator = forwardRef<IChatBotDlgNavigatorMethods, { allCategoryRows: Map<String, ICategoryRow> }>(
+const ChatBotDlgNavigator = forwardRef<IChatBotDlgNavigatorMethods, { allCategoryRows: ICategoryRow[] }>(
     ({ allCategoryRows }, ref) => {
 
         const [topRows, setTopRows] = useState<ICategoryRow[]>([]);
@@ -96,44 +96,39 @@ const ChatBotDlgNavigator = forwardRef<IChatBotDlgNavigatorMethods, { allCategor
 
         const onSelectCategory = async (eventKey: AccordionEventKey, e: React.SyntheticEvent<unknown>) => {
             const id = eventKey![0];
-            console.log(allCategoryRows, allCategoryRows.get(id));
+            console.log(allCategoryRows, allCategoryRows.find(x => id === x.id));
             e.preventDefault();
             console.log('onSelectCategory', { eventKey, e });
             //await getSubCats(eventKey as string);
         }
 
-        const loadSubTree = useCallback(async (categoryRow: ICategoryRow) => {
+        //////////////////
+        const loadSubTree = async (categoryRow: ICategoryRow): Promise<boolean> => {
             const { id } = categoryRow;
-            allCategoryRows.forEach(async (catRow) => {
-                catRow.categoryRows = [];
-                if (catRow.id !== id && catRow.parentId === id) {
-                    await loadSubTree(catRow);
-                    categoryRow.categoryRows.push(catRow)
+            allCategoryRows.forEach(async (row) => {
+                if (row.id !== id && row.parentId === id) {
+                    await loadSubTree(row);
+                    categoryRow.categoryRows.push(row);
                 }
             });
-            //return subCats;
-        }, [allCategoryRows]);
-
+            return true;
+        };
+        
+        //////////////////
         const resetNavigator = (): void => {
             setTopRows([]);
-            const topRowsTmp: ICategoryRow[] = []
             allCategoryRows.forEach(async (categoryRow) => {
+                categoryRow.categoryRows = [];
                 if (categoryRow.parentId === null) {
-                    categoryRow.categoryRows = [];
-                    loadSubTree(categoryRow);
-                    topRowsTmp.push(categoryRow);
+                    await loadSubTree(categoryRow);
+                    setTopRows(prevTopRows => [...prevTopRows, categoryRow]);
                 }
             });
-            setTopRows(topRowsTmp);
         }
 
-        useEffect(() => {
-            // resetNavigator();
-        }, [])
 
         useImperativeHandle(ref, () => ({
             resetNavigator
-            //loadSubTree: (categoryRow: ICategoryRow|null) => loadSubTree(categoryRow)
         }), []);
 
         return (

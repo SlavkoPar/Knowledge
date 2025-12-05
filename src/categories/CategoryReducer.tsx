@@ -185,8 +185,8 @@ const innerReducer = (state: ICategoriesState, action: Actions): ICategoriesStat
 
 
     case ActionTypes.SET_NODE_EXPANDING_UP_THE_TREE: {
-      const { fromChatBotDlg, categoryId_questionId_done } = action.payload;
-      const { keyExpanded /*, activeCategory, activeQuestion */ } = state;
+      const { categoryId_questionId_done } = action.payload;
+      //const { keyExpanded /*, activeCategory, activeQuestion */ } = state;
       return {
         ...state,
         categoryId_questionId_done,

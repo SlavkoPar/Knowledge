@@ -34,12 +34,12 @@ const AboutShort: React.FC<IAboutShort> = () => {
 
             <ol className="my-3">
               <li className="my-1">Create your Workspace at our platform</li>
-              <li className="my-1">Use our Web App for maintenace of your Q/A</li>
+              <li className="my-1">Use this Web App, as the Admin modeul for maintenace of your Q/A</li>
               <li className="my-1">
-                Integrate our Knowledge-Lib<br />
-                <i>'ChatBot JavaScript Library'</i> at your Web site &nbsp;&nbsp;
+                Integrate our 
+                <i>Javascript Knowledge-Lib</i> at your Web site &nbsp;&nbsp;
                 <br />
-                <a href="https://knowledge-share-demo.com" target="_blank" rel="noopener noreferrer">Example with WordPress site</a>
+                <a href="https://knowledge-share-demo.com" target="_blank" rel="noopener noreferrer">Example at WordPress site</a>
               </li>
             </ol>
           </div>

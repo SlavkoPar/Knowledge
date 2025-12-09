@@ -32,7 +32,7 @@ export interface ICategoryRowDto extends IDtoKey {
 	Variations: string[];
 	Level: number;
 	HasSubCategories: boolean;
-	SubCategoryRowDtos: ICategoryRowDto[];
+	RowDtos: ICategoryRowDto[];
 	NumOfQuestions?: number;
 	QuestionRowDtos?: IQuestionRowDto[];
 	HasMoreQuestions?: boolean;
@@ -91,7 +91,7 @@ export class CategoryRowDto {
 			Variations: [],
 			// TODO proveri []
 			HasSubCategories: false,
-			SubCategoryRowDtos: [],
+			RowDtos: [],
 			NumOfQuestions: 0,
 			QuestionRowDtos: [],
 			Level: 0,
@@ -105,7 +105,7 @@ export class CategoryRowDto {
 export class CategoryRow {
 	constructor(categoryRowDto: ICategoryRowDto) {
 		const { TopId, Id, ParentId, Kind, Title, Link, Header, Variations, Level,
-			HasSubCategories, SubCategoryRowDtos,
+			HasSubCategories, RowDtos,
 			NumOfQuestions, QuestionRowDtos,
 			IsExpanded } = categoryRowDto;
 		this.categoryRow = {
@@ -118,8 +118,8 @@ export class CategoryRow {
 			titlesUpTheTree: '', // traverse up the tree, until root
 			variations: Variations??[],
 			hasSubCategories: HasSubCategories, //!, Odakle ovo
-			categoryRows: SubCategoryRowDtos
-				? SubCategoryRowDtos.map(dto => new CategoryRow({ ...dto, TopId }).categoryRow)
+			categoryRows: RowDtos
+				? RowDtos.map(dto => new CategoryRow({ ...dto, TopId }).categoryRow)
 				: [],
 			numOfQuestions: NumOfQuestions??0,
 			questionRows: QuestionRowDtos
@@ -318,10 +318,10 @@ export class CategoryKey {
 export class Category {
 	constructor(dto: ICategoryDto) {
 		const { TopId, Id, ParentId, Kind, Title, Link, Header, Level, Variations, NumOfQuestions,
-			HasSubCategories, SubCategoryRowDtos, Created, Modified, QuestionRowDtos, IsExpanded, Doc1 } = dto;
+			HasSubCategories, RowDtos, Created, Modified, QuestionRowDtos, IsExpanded, Doc1 } = dto;
 
-		const categoryRows = SubCategoryRowDtos
-			? SubCategoryRowDtos.map((rowDto: ICategoryRowDto) => new CategoryRow(rowDto).categoryRow)
+		const categoryRows = RowDtos
+			? RowDtos.map((rowDto: ICategoryRowDto) => new CategoryRow(rowDto).categoryRow)
 			: [];
 
 		const questionRows = QuestionRowDtos
@@ -367,7 +367,7 @@ export class CategoryDto {
 			Header: header ?? '',
 			Level: level,
 			HasSubCategories: true,
-			SubCategoryRowDtos: [],
+			RowDtos: [],
 			NumOfQuestions: 0,
 			QuestionRowDtos: [],
 			Variations: variations,

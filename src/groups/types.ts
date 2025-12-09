@@ -27,7 +27,7 @@ export interface IGroupRowDto extends IDtoKey {
 	Variations: string[];
 	Level: number;
 	HasSubGroups: boolean;
-	SubGroupRowDtos: IGroupRowDto[];
+	RowDtos: IGroupRowDto[];
 	NumOfAnswers: number;
 	AnswerRowDtos?: IAnswerRowDto[];
 	HasMoreAnswers?: boolean;
@@ -84,7 +84,7 @@ export class GroupRowDto {
 			Variations: [],
 			// TODO proveri []
 			HasSubGroups: false,
-			SubGroupRowDtos: [],
+			RowDtos: [],
 			NumOfAnswers: 0,
 			AnswerRowDtos: [],
 			Level: 0,
@@ -99,7 +99,7 @@ export class GroupRow {
 
 	constructor(groupRowDto: IGroupRowDto) {
 		const { TopId, Id, ParentId, Kind, Title, Link, Header, Variations, Level,
-			HasSubGroups, SubGroupRowDtos,
+			HasSubGroups, RowDtos,
 			NumOfAnswers, AnswerRowDtos,
 			IsExpanded } = groupRowDto;
 		this.groupRow = {
@@ -112,8 +112,8 @@ export class GroupRow {
 			titlesUpTheTree: '', // traverse up the tree, until root
 			variations: Variations,
 			hasSubGroups: HasSubGroups, //!, Odakle ovo
-			groupRows: SubGroupRowDtos
-				? SubGroupRowDtos.map(dto => new GroupRow({ ...dto, TopId }).groupRow)
+			groupRows: RowDtos
+				? RowDtos.map(dto => new GroupRow({ ...dto, TopId }).groupRow)
 				: [],
 			numOfAnswers: NumOfAnswers,
 			answerRows: AnswerRowDtos
@@ -258,10 +258,10 @@ export class GroupKey {
 export class Group {
 	constructor(dto: IGroupDto) {
 		const { TopId, Id, ParentId, Kind, Title, Link, Header, Level, Variations, NumOfAnswers,
-			HasSubGroups, SubGroupRowDtos, Created, Modified, AnswerRowDtos, IsExpanded, Doc1 } = dto;
+			HasSubGroups, RowDtos, Created, Modified, AnswerRowDtos, IsExpanded, Doc1 } = dto;
 
-		const groupRows = SubGroupRowDtos
-			? SubGroupRowDtos.map((rowDto: IGroupRowDto) => new GroupRow(rowDto).groupRow)
+		const groupRows = RowDtos
+			? RowDtos.map((rowDto: IGroupRowDto) => new GroupRow(rowDto).groupRow)
 			: [];
 
 		const answerRows = AnswerRowDtos
@@ -307,7 +307,7 @@ export class GroupDto {
 			Header: header ?? '',
 			Level: level,
 			HasSubGroups: true,
-			SubGroupRowDtos: [],
+			RowDtos: [],
 			NumOfAnswers: 0,
 			AnswerRowDtos: [],
 			Variations: variations,

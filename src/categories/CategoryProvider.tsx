@@ -1328,7 +1328,7 @@ export const CategoryProvider: React.FC<IProps> = ({ children }) => {
     assignQuestionAnswer
   }
 
-  if (!isAuthenticated || !allCategoryRowsLoaded || keyExpanded === null)  // TODO remove keyExpanded === null
+  if (!isAuthenticated || !allCategoryRowsLoaded)  // removed keyExpanded === null
     return null;
 
   return (

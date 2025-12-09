@@ -101,14 +101,11 @@ function App() {
   }, [isAuthenticated, nickName, everLoggedIn, locationPathname, navigate, location.search])
 
 
-  // useEffect(() => {
-  //   console.log('----------->>>>>>>>>> App lastRouteVisited', lastRouteVisited);
-  if (locationPathname !== '/knowledge') {
-    if (locationPathname !== lastRouteVisited && !locationPathname.includes('/from_chat')) {
+  useEffect(() => {
+    if (locationPathname === '/knowledge' && !locationPathname.includes('/from_chat')) {
       navigate(lastRouteVisited);
     }
-  }
-  //}, [lastRouteVisited, navigate])
+  }, [lastRouteVisited])
 
   if (!isAuthenticated) // || !categoryRowsLoaded) // || !groupRowsLoaded)
     return <div>App loading</div>

@@ -28,8 +28,8 @@ const ChatBotDlgNavigator = forwardRef<IChatBotDlgNavigatorMethods, { allCategor
 
         const [topRows, setTopRows] = useState<ICategoryRow[]>([]);
 
-        function ContextAwareToggle({ children, eventKey, hasSubCategories, callback }:
-            { children: ReactNode; eventKey: AccordionEventKey; hasSubCategories: boolean; callback?: (eventKey?: AccordionEventKey) => void }) {
+        function ContextAwareToggle({ children, eventKey, hasSubCategories, isExpanded, callback }:
+            { children: ReactNode; eventKey: AccordionEventKey; hasSubCategories: boolean; isExpanded: boolean, callback?: (eventKey?: AccordionEventKey) => void }) {
 
             const { activeEventKey } = useContext(AccordionContext);
             const decoratedOnClick = useAccordionButton(
@@ -38,38 +38,47 @@ const ChatBotDlgNavigator = forwardRef<IChatBotDlgNavigatorMethods, { allCategor
             );
             const isCurrentEventKey = activeEventKey === eventKey;
             return (
-                <button
+                <Button
                     type="button"
-                    className={`accordion-button${!hasSubCategories ? ' hide-icon' : ''}`}
+                    //className={`${isExpanded ? '' : 'collapsed'} accordion-button${!hasSubCategories ? ' hide-icon' : ''}`}
+                    className={`${!hasSubCategories ? ' hide-icon' : ''}`}
                     style={{
                         backgroundColor: isCurrentEventKey ? PINK : BLUE
                     }}
                     onClick={decoratedOnClick}
                 >
                     {children}
-                </button>
+                </Button>
             );
         }
 
         const CatRow = ({ row }: { row: ICategoryRow }) => {
+            const { id, hasSubCategories, title, link } = row;
             return (
-                <Card>
-                    <Card.Header>
-                        <ContextAwareToggle eventKey={row.id} hasSubCategories={row.hasSubCategories}>
+                <Accordion.Item eventKey={id}>
+                    <Accordion.Header className={`${!hasSubCategories ? 'hide-icon' : ''}`}>
+                        {/* <ContextAwareToggle eventKey={row.id} hasSubCategories={row.hasSubCategories} isExpanded={row.isExpanded ? true : false}> */}
                             {row.link
-                                ? <Button href="#" variant="link" className="cat-link" onClick={() => navigate(`${row.link}/from_chat`)}>{row.title}</Button>
-                                : <span className="cat-title">{row.title}</span>
+                                ? <a href="#" className="cat-link" onClick={() => navigate(`${link}/from_chat`)}>{title}</a>
+                                : <span className="cat-title">{title}</span>
                             }
-                        </ContextAwareToggle>
-                    </Card.Header>
-                    <Accordion.Collapse eventKey={row.id}>
+                        {/* </ContextAwareToggle> */}
+                    </Accordion.Header>
+                    <Accordion.Body>
+                        {/* <Card.Body> */}
+                            {row.hasSubCategories &&
+                                <CatList rows={row.categoryRows} />
+                            }
+                        {/* </Card.Body> */}
+                    </Accordion.Body>
+                    {/* <Accordion.Collapse eventKey={row.id}>
                         <Card.Body>
                             {row.hasSubCategories &&
                                 <CatList rows={row.categoryRows} />
                             }
                         </Card.Body>
-                    </Accordion.Collapse>
-                </Card>
+                    </Accordion.Collapse> */}
+                </Accordion.Item>
             )
         }
 
@@ -85,10 +94,11 @@ const ChatBotDlgNavigator = forwardRef<IChatBotDlgNavigatorMethods, { allCategor
 
         const onSelectCategory = async (eventKey: AccordionEventKey, e: React.SyntheticEvent<unknown>) => {
             const id = eventKey![0];
-            const parentCat = allCategoryRows.find(x => id === x.id);
-            if (parentCat) {
-                e.stopPropagation();
-                e.preventDefault();
+            const cat = allCategoryRows.find(x => id === x.id);
+            if (cat) {
+                cat.isExpanded = !cat.isExpanded;
+                //e.stopPropagation();
+                //e.preventDefault();
             }
             // console.log('onSelectCategory', { parentCat, eventKey, e });
         }

@@ -68,7 +68,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     const [open, setOpen] = useState<boolean>(false);
     useEffect(() => {
-        if (categoryRows.length > 0) // no need for this
+        //if (categoryRows.length > 0) 
             setOpen(true);
     }, [categoryRows]);
 
